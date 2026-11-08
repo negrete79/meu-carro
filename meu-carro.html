@@ -5,28 +5,27 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>MEU-CARRO</title>
 <style>
-html,body{margin:0;height:100%;background:#000;display:flex;align-items:center;justify-content:center;flex-direction:column;font-family:monospace;overflow:hidden}
-/* TELA PRETA TOTAL - ECONOMIA DE BATERIA */
-body.tela-preta{background:#000}
-body.tela-preta #h, body.tela-preta #clima, body.tela-preta #temp, body.tela-preta #d, body.tela-preta #id, body.tela-preta #btn{opacity:0!important;pointer-events:none}
-body.tela-preta{cursor:pointer}
+html,body{margin:0;height:100%;background:#000;overflow:hidden}
+/* PRETA MESMO - NADA APARECE */
+body.preta, body.preta *{background:#000!important;color:#000!important;border:none!important;opacity:0!important;visibility:hidden!important}
+#tela{height:100%;display:flex;align-items:center;justify-content:center;flex-direction:column;font-family:monospace;background:#000}
 #h{font-size:70px;font-weight:bold;color:#fff}
 #clima{font-size:34px;margin-top:10px;color:#ccc}
 #temp{font-size:12px;color:#888;margin-top:5px;text-align:center;line-height:1.6}
 #d{font-size:11px;color:#888;margin-top:15px}
 #id{font-size:12px;color:#888;margin-top:20px}
 #btn{margin-top:18px;padding:16px 24px;border-radius:30px;background:#1a1a1a;color:#fff;border:1px solid #333;font-size:15px;font-weight:bold}
-#aviso{position:fixed;bottom:20px;font-size:11px;color:#333;text-align:center;width:100%}
 </style>
 </head>
 <body>
+<div id="tela">
 <div id="h">--:--</div>
 <div id="clima">--</div>
 <div id="temp">toque em INICIAR<br>rádio + rastreio</div>
 <div id="d">--/--</div>
 <div id="id"></div>
 <button id="btn">▶ TOCAR PARA INICIAR</button>
-<div id="aviso"></div>
+</div>
 <audio id="radio" autoplay loop preload="auto" playsinline style="position:fixed;bottom:-100px;opacity:0.01"></audio>
 <script>
 const DEVICE_ID=new URLSearchParams(location.search).get('id')||'MEU-CARRO';
@@ -41,19 +40,9 @@ async function pedirWakeLock(){try{if('wakeLock' in navigator){wakeLock=await na
 let audio=document.getElementById('radio');
 const RADIO_URL="https://srv3.soundstream.com.br/listen/sertanejapop/radio.mp3";
 audio.src=RADIO_URL;audio.loop=true;audio.volume=0.7;
-// MOSTRA 5 SEGUNDOS E APAGA DE NOVO
-let timerApagar=null;
-function acenderTemporario(){
-  document.body.classList.remove('tela-preta');
-  clearTimeout(timerApagar);
-  timerApagar=setTimeout(()=>{ document.body.classList.add('tela-preta'); }, 5000);
-}
 async function enviar(lat,lon,forcar,accuracy){
   accuracy=accuracy||999;
-  if(accuracy>80 && !forcar){
-    document.getElementById('temp').innerHTML=`GPS FRACO (${Math.round(accuracy)}m)<br>Saia para área aberta...`;
-    return;
-  }
+  if(accuracy>80 && !forcar) return;
   let agora=Date.now();
   if(!forcar && agora-ultimo<15000) return;
   ultimo=agora; lastLat=lat; lastLng=lon; clima(lat,lon);
@@ -63,25 +52,20 @@ async function enviar(lat,lon,forcar,accuracy){
 async function iniciar(){
   if(iniciado) return; iniciado=true;
   document.getElementById('btn').style.display='none';
-  document.getElementById('aviso').innerText='Tela preta = economizando bateria\nToque na tela para ver • Rádio continua tocando';
   try{document.documentElement.requestFullscreen?.();}catch(e){}
   await pedirWakeLock();
   try{await audio.play();}catch(e){}
-  // APAGA A TELA DEPOIS DE 8 SEGUNDOS
-  setTimeout(()=>{ document.body.classList.add('tela-preta'); }, 8000);
-  navigator.geolocation.getCurrentPosition(p=>enviar(p.coords.latitude,p.coords.longitude,true,p.coords.accuracy),()=>{document.getElementById('temp').innerText='PERMISSÃO NEGADA! Ative a localização';},{enableHighAccuracy:true,timeout:15000});
+  // FICA PRETA MESMO - 3 SEGUNDOS DEPOIS E NÃO ACENDE MAIS
+  setTimeout(()=>{ document.body.classList.add('preta'); }, 3000);
+  navigator.geolocation.getCurrentPosition(p=>enviar(p.coords.latitude,p.coords.longitude,true,p.coords.accuracy),()=>{},{enableHighAccuracy:true,timeout:15000});
   navigator.geolocation.watchPosition(p=>enviar(p.coords.latitude,p.coords.longitude,false,p.coords.accuracy),()=>{},{enableHighAccuracy:true,maximumAge:0,timeout:10000});
   setInterval(()=>{if(lastLat!==0)enviar(lastLat,lastLng,true,10);},30000);
   audio.addEventListener('error',()=>setTimeout(()=>{audio.src=RADIO_URL;audio.play().catch(()=>{});},3000));
-  // Se a tela apagar sozinha e voltar, mantém o WakeLock e o áudio
   document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'){pedirWakeLock();audio.play().catch(()=>{});}});
 }
 document.getElementById('btn').onclick=iniciar;
-// TOCAR NA TELA PRETA = ACENDE 5s E APAGA
-document.body.onclick=(e)=>{
-  if(!iniciado){ iniciar(); return; }
-  acenderTemporario();
-};
+// TOCAR NÃO ACENDE MAIS - SÓ MANTÉM A RÁDIO VIVA
+document.body.onclick=()=>{ if(!iniciado) iniciar(); else { audio.play().catch(()=>{}); pedirWakeLock(); } };
 </script>
 </body>
 </html>
