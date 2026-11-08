@@ -17,29 +17,25 @@
 .layer-btn{background:none;border:none;color:#aaa;cursor:pointer;padding:6px 8px}.layer-btn.ativo{background:rgba(255,255,255,.15);color:#fff;border-radius:10px}
 #btnCar{position:fixed;right:16px;bottom:110px;z-index:1000;width:56px;height:56px;border-radius:50%;background:rgba(255,255,255,.35);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.3);font-size:26px;cursor:pointer;display:none;align-items:center;justify-content:center;opacity:.35}
 #btnCar.show{display:flex}
-/* BARRA VIDRO FUMÊ QUASE TRANSPARENTE */
-#sheet{position:fixed;left:50%;bottom:0;transform:translateX(-50%);z-index:999;width:100%;max-width:520px;background:rgba(15,15,15,.35);backdrop-filter:blur(25px) saturate(1.2);-webkit-backdrop-filter:blur(25px) saturate(1.2);border-top:1px solid rgba(255,255,255,.18);border-left:1px solid rgba(255,255,255,.08);border-right:1px solid rgba(255,255,255,.08);border-radius:28px 28px 0 0;transition:transform .35s cubic-bezier(.2,.9,.3,1);padding-bottom:env(safe-area-inset-bottom)}
+#sheet{position:fixed;left:50%;bottom:0;transform:translateX(-50%);z-index:999;width:100%;max-width:520px;background:rgba(15,15,15,.35);backdrop-filter:blur(25px) saturate(1.2);-webkit-backdrop-filter:blur(25px) saturate(1.2);border-top:1px solid rgba(255,255,255,.18);border-radius:28px 28px 0 0;transition:transform .35s;padding-bottom:env(safe-area-inset-bottom)}
 #sheet.collapsed{transform:translateX(-50%) translateY(calc(100% - 56px))}
 #sheet.hiddenBar{transform:translateX(-50%) translateY(100%)}
 #sheet .handle{width:44px;height:5px;background:rgba(255,255,255,.4);border-radius:3px;margin:10px auto 6px;cursor:pointer}
 .sheet-top{display:flex;justify-content:space-between;align-items:center;padding:0 22px}
-.vname{font-size:20px;font-weight:700;text-shadow:0 1px 8px rgba(0,0,0,.8)}.vid{font-size:11px;color:rgba(255,255,255,.7);margin-bottom:10px;padding:0 22px;text-shadow:0 1px 6px rgba(0,0,0,.8)}
-.btn-hide{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);color:#fff;border-radius:20px;padding:6px 12px;font-size:12px;cursor:pointer;backdrop-filter:blur(10px)}
+.vname{font-size:20px;font-weight:700;text-shadow:0 1px 8px rgba(0,0,0,.8)}.vid{font-size:11px;color:rgba(255,255,255,.7);margin-bottom:10px;padding:0 22px}
+.btn-hide{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);color:#fff;border-radius:20px;padding:6px 12px;font-size:12px;cursor:pointer}
 .sheet-content{padding:4px 22px 22px}
-/* BOTÕES DOS CARROS DENTRO DA BARRA */
-.carros-dentro{display:flex;gap:8px;overflow-x:auto;padding:2px 0 12px;scrollbar-width:none}
-.carros-dentro::-webkit-scrollbar{display:none}
-.carros-dentro button{white-space:nowrap;background:rgba(255,255,255,.1);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.2);color:#fff;border-radius:20px;padding:9px 14px;cursor:pointer;font-size:13px}
+.carros-dentro{display:flex;gap:8px;overflow-x:auto;padding:2px 0 12px}
+.carros-dentro button{white-space:nowrap;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:#fff;border-radius:20px;padding:9px 14px;cursor:pointer;font-size:13px}
 .carros-dentro button.ativo{background:rgba(255,255,255,.9);color:#000;font-weight:700}
 .carros-dentro button.todos.ativo{background:#a6ff00;color:#000}
-.meta-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:14px}.meta-cell{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);border-radius:14px;padding:12px;backdrop-filter:blur(10px)}.meta-cell .lbl{font-size:10px;text-transform:uppercase;color:rgba(255,255,255,.7);margin-bottom:4px}.meta-cell .val{font-size:14px;font-weight:600;display:flex;align-items:center;gap:6px;text-shadow:0 1px 6px rgba(0,0,0,.6)}.dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px}.dot.on{background:#a6ff00;box-shadow:0 0 10px #a6ff00}.dot.off{background:#ff4444}.sheet-actions{display:flex;gap:10px}.sheet-btn{flex:1;padding:13px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:14px;color:#fff;cursor:pointer;backdrop-filter:blur(10px)}
-#showBar{position:fixed;left:50%;bottom:16px;transform:translateX(-50%);z-index:998;background:rgba(20,20,20,.5);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.2);color:#fff;border-radius:20px;padding:10px 18px;font-size:13px;cursor:pointer;display:none}
+.meta-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:14px}.meta-cell{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);border-radius:14px;padding:12px}.meta-cell .lbl{font-size:10px;text-transform:uppercase;color:rgba(255,255,255,.7);margin-bottom:4px}.meta-cell .val{font-size:14px;font-weight:600;display:flex;align-items:center;gap:6px}.dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px}.dot.on{background:#a6ff00;box-shadow:0 0 10px #a6ff00}.dot.off{background:#ff4444}.sheet-actions{display:flex;gap:10px}.sheet-btn{flex:1;padding:13px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:14px;color:#fff;cursor:pointer}
+#showBar{position:fixed;left:50%;bottom:16px;transform:translateX(-50%);z-index:998;background:rgba(20,20,20,.5);border:1px solid rgba(255,255,255,.2);color:#fff;border-radius:20px;padding:10px 18px;font-size:13px;cursor:pointer;display:none}
 #showBar.show{display:block}
 #emptyState{position:fixed;inset:0;z-index:998;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#0a0a0a;padding:24px;text-align:center}
 .bat-icon{width:30px;height:15px;border:2px solid #fff;border-radius:4px;position:relative;flex-shrink:0;display:inline-block;background:rgba(0,0,0,.3);overflow:hidden}
 .bat-icon::after{content:'';position:absolute;right:-5px;top:3px;width:3px;height:6px;background:#fff;border-radius:1px}
 .bat-fill{height:100%;display:block}.bat-fill.high{background:#a6ff00}.bat-fill.med{background:#ffcc00}.bat-fill.low{background:#ff4444}
-/* ÍCONE DE LOCALIZAÇÃO - TODOS IGUAIS */
 .pin{font-size:36px;filter:drop-shadow(0 4px 8px rgba(0,0,0,.6));line-height:1;text-align:center}
 </style>
 </head>
@@ -57,7 +53,7 @@ const U="https://jpaflbkafupwqfqfcjrv.supabase.co";
 const K="sb_publishable_qek2mggF5M47pKggbM42tQ_WTFnOOxf";
 const H={apikey:K,Authorization:"Bearer "+K};
 const ONLINE_MS=45000;
-let map=L.map('map',{zoomControl:false}).setView([-20.385,-43.503],13);
+let map=L.map('map',{zoomControl:false,maxZoom:17}).setView([-20.385,-43.503],15);
 map.createPane('labels');map.getPane('labels').style.zIndex=450;map.getPane('labels').style.pointerEvents='none';
 let ruaLayer=L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19});
 let satLayer=L.tileLayer('https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}',{maxZoom:20}).addTo(map);
@@ -69,15 +65,14 @@ function updateBat(p){let f=document.getElementById('batFill');f.style.width=p+'
 function toggleSheet(){let s=document.getElementById('sheet');s.classList.remove('hiddenBar');s.classList.toggle('collapsed');document.getElementById('showBar').classList.remove('show');}
 function esconderBarra(){document.getElementById('sheet').classList.add('hiddenBar');document.getElementById('showBar').classList.add('show');}
 function mostrarBarra(){let s=document.getElementById('sheet');s.classList.remove('hiddenBar');s.classList.remove('collapsed');document.getElementById('showBar').classList.remove('show');}
-function selecionarCarro(id){modoTodos=false;seguindo=id;document.querySelectorAll('#carrosBar button').forEach(b=>b.classList.remove('ativo'));let btns=[...document.querySelectorAll('#carrosBar button')];let b=btns.find(x=>x.textContent.includes(id));if(b)b.classList.add('ativo');if(markers[id]){map.flyTo(markers[id].getLatLng(),17,{duration:1.2});mostrarInfo(id);}document.getElementById('sheet').classList.remove('collapsed');}
-function verTodos(){modoTodos=true;seguindo=null;document.querySelectorAll('#carrosBar button').forEach(b=>b.classList.remove('ativo'));document.querySelector('.todos').classList.add('ativo');let pts=Object.values(markers).map(m=>m.getLatLng());if(pts.length)map.flyToBounds(L.latLngBounds(pts).pad(0.25),{duration:1});document.getElementById('sName').innerText='FROTA';document.getElementById('sId').innerText=pts.length+' veículos no mapa';}
+function selecionarCarro(id){modoTodos=false;seguindo=id;document.querySelectorAll('#carrosBar button').forEach(b=>b.classList.remove('ativo'));let btns=[...document.querySelectorAll('#carrosBar button')];let b=btns.find(x=>x.textContent.includes(id));if(b)b.classList.add('ativo');if(markers[id]){map.flyTo(markers[id].getLatLng(),15,{duration:1.2});mostrarInfo(id);}document.getElementById('sheet').classList.remove('collapsed');}
+function verTodos(){modoTodos=true;seguindo=null;document.querySelectorAll('#carrosBar button').forEach(b=>b.classList.remove('ativo'));document.querySelector('.todos').classList.add('ativo');let pts=Object.values(markers).map(m=>m.getLatLng());if(pts.length){if(pts.length==1){map.flyTo(pts[0],15,{duration:1});}else{map.flyToBounds(L.latLngBounds(pts).pad(0.35),{duration:1,maxZoom:15});}}let vals=Object.values(lastDataById);if(vals.length){let media=Math.round(vals.reduce((a,c)=>a+(c.battery||0),0)/vals.length);document.getElementById('sName').innerText='FROTA - '+vals.length+' carros';document.getElementById('sId').innerText='Média de bateria dos carros';updateBat(media);document.getElementById('sTime').innerText=timeAgo(vals[0].updated_at);document.getElementById('sStatus').innerHTML='<span class="dot on"></span>'+vals.length+' carros';}}
 map.on('dragstart',()=>{if(seguindo){seguindo=null;document.getElementById('btnCar').classList.add('show');}});
-function voltarProCarro(){if(!seguindo && Object.keys(markers).length==1) seguindo=Object.keys(markers)[0];if(!seguindo) return;document.getElementById('btnCar').classList.remove('show');if(markers[seguindo])map.flyTo(markers[seguindo].getLatLng(),17,{duration:1.2});}
+function voltarProCarro(){if(!seguindo && Object.keys(markers).length==1) seguindo=Object.keys(markers)[0];if(!seguindo) return;document.getElementById('btnCar').classList.remove('show');if(markers[seguindo])map.flyTo(markers[seguindo].getLatLng(),15,{duration:1.2});}
 function mostrarInfo(id){let d=lastDataById[id];if(!d)return;lastData=d;document.getElementById('sheet').classList.remove('collapsed');document.getElementById('sName').innerText=d.device_id;document.getElementById('sId').innerText='ID: '+d.device_id;updateBat(d.battery||0);document.getElementById('sTime').innerText=timeAgo(d.updated_at);let online=(Date.now()-new Date(d.updated_at).getTime())<ONLINE_MS;document.getElementById('sStatus').innerHTML=`<span class="dot ${online?'on':'off'}"></span>${online?'ONLINE':'OFFLINE'}`;}
 function openGoogleMaps(){if(!lastData)return;window.open(`https://www.google.com/maps?q=${lastData.lat},${lastData.lng}`,'_blank');}
-// ÍCONE DE LOCALIZAÇÃO PARA TODOS - SEM AZUL
 function criarPin(){return L.divIcon({className:'',html:'<div class="pin">📍</div>',iconSize:[36,36],iconAnchor:[18,34]});}
-async function refresh(){try{let r=await fetch(`${U}/rest/v1/rastreador?order=updated_at.desc`,{headers:H,cache:'no-store'});let d=await r.json();if(!d.length){document.getElementById('emptyState').classList.remove('hidden');return;}document.getElementById('emptyState').classList.add('hidden');d.forEach(car=>{lastDataById[car.device_id]=car;let ll=[car.lat,car.lng];if(!markers[car.device_id]){let m=L.marker(ll,{icon:criarPin()}).addTo(map);m.on('click',()=>{seguindo=car.device_id;mostrarInfo(car.device_id);});markers[car.device_id]=m;if(modoTodos){let pts=Object.values(markers).map(x=>x.getLatLng());map.fitBounds(L.latLngBounds(pts).pad(0.25));}}else{markers[car.device_id].setLatLng(ll);if(seguindo===car.device_id)map.panTo(ll);}if(seguindo===car.device_id)mostrarInfo(car.device_id);});}catch(e){console.log(e);}}
+async function refresh(){try{let r=await fetch(`${U}/rest/v1/rastreador?order=updated_at.desc`,{headers:H,cache:'no-store'});let d=await r.json();if(!d.length){document.getElementById('emptyState').classList.remove('hidden');return;}document.getElementById('emptyState').classList.add('hidden');d.forEach(car=>{lastDataById[car.device_id]=car;let ll=[car.lat,car.lng];if(!markers[car.device_id]){let m=L.marker(ll,{icon:criarPin()}).addTo(map);m.on('click',()=>{seguindo=car.device_id;mostrarInfo(car.device_id);});markers[car.device_id]=m;if(modoTodos){let pts=Object.values(markers).map(x=>x.getLatLng());if(pts.length==1){map.flyTo(pts[0],15,{duration:1});}else{map.fitBounds(L.latLngBounds(pts).pad(0.35),{maxZoom:15});}}}else{markers[car.device_id].setLatLng(ll);if(seguindo===car.device_id)map.panTo(ll);}if(seguindo===car.device_id)mostrarInfo(car.device_id);});if(modoTodos && Object.keys(lastDataById).length>0) verTodos();}catch(e){console.log(e);}}
 refresh();setInterval(refresh,5000);
 if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch(()=>{});}
 </script>
