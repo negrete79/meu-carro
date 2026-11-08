@@ -28,7 +28,7 @@ const DEVICE_ID=new URLSearchParams(location.search).get('id')||'MEU-CARRO';
 document.getElementById('id').innerText=DEVICE_ID;
 const U="https://jpaflbkafupwqfqfcjrv.supabase.co",K="sb_publishable_qek2mggF5M47pKggbM42tQ_WTFnOOxf";
 let BAT=0,ultimo=0,lastLat=0,lastLng=0,iniciado=false,wakeLock=null;
-if(navigator.getBattery){navigator.getBattery().then(b=>{let u=()=>{BAT=Math.round(b.level*100)};b.addEventListener('levelchange',u);u();});}
+if(navigator.getBattery){navigator.getBattery().then(b=>{let u=()=>{BAT=Math.round(b.level*100);};b.addEventListener('levelchange',u);b.addEventListener('chargingchange',u);u();});}
 function clock(){document.getElementById('h').innerText=new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});document.getElementById('d').innerText=new Date().toLocaleDateString('pt-BR');}
 setInterval(clock,1000);clock();
 async function clima(lat,lon){try{let r=await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`);let j=await r.json();document.getElementById('clima').innerText=Math.round(j.current_weather.temperature)+"°C";}catch(e){}}
@@ -37,8 +37,32 @@ document.addEventListener('visibilitychange',()=>{if(document.visibilityState===
 let audio=document.getElementById('radio');
 const RADIO_URL="https://srv3.soundstream.com.br/listen/sertanejapop/radio.mp3";
 audio.src=RADIO_URL;audio.loop=true;audio.volume=0.7;
-async function enviar(lat,lon,forcar){let agora=Date.now();if(!forcar&&agora-ultimo<15000)return;ultimo=agora;lastLat=lat;lastLng=lon;clima(lat,lon);document.getElementById('temp').innerHTML=`${DEVICE_ID} ${BAT}% | ${new Date().toLocaleTimeString('pt-BR')}<br>GPS OK - RÁDIO ON`;try{await fetch(`${U}/rest/v1/rastreador`,{method:"POST",headers:{apikey:K,Authorization:"Bearer "+K,"Content-Type":"application/json",Prefer:"resolution=merge-duplicates"},body:JSON.stringify({device_id:DEVICE_ID,lat:lat,lng:lon,battery:BAT,updated_at:new Date().toISOString()})});await fetch(`${U}/rest/v1/rastreador_historico`,{method:"POST",headers:{apikey:K,Authorization:"Bearer "+K,"Content-Type":"application/json"},body:JSON.stringify({device_id:DEVICE_ID,lat:lat,lng:lon,battery:BAT})}).catch(()=>{});}catch(e){}}
-async function iniciar(){if(iniciado)return;iniciado=true;document.getElementById('btn').style.display='none';document.body.classList.add('acordado');setTimeout(()=>document.body.classList.remove('acordado'),8000);try{document.documentElement.requestFullscreen?.();}catch(e){}await pedirWakeLock();try{await audio.play();}catch(e){}let pega=()=>navigator.geolocation.getCurrentPosition(p=>enviar(p.coords.latitude,p.coords.longitude,false),()=>{},{enableHighAccuracy:true,timeout:10000});pega();navigator.geolocation.watchPosition(p=>enviar(p.coords.latitude,p.coords.longitude,false),()=>{},{enableHighAccuracy:true,maximumAge:0});setInterval(pega,15000);setInterval(()=>{if(lastLat!==0)enviar(lastLat,lastLng,true);},20000);audio.addEventListener('error',()=>setTimeout(()=>{audio.src=RADIO_URL;audio.play().catch(()=>{});},3000));}
+// ENVIA SÓ SE GPS FOR BOM - ignora GPS fraco de dentro de casa
+async function enviar(lat,lon,forcar,accuracy){
+  accuracy=accuracy||999;
+  if(accuracy>80 && !forcar){
+    document.getElementById('temp').innerHTML=`GPS FRACO (${Math.round(accuracy)}m)<br>Saia para área aberta...`;
+    return;
+  }
+  let agora=Date.now();
+  if(!forcar && agora-ultimo<15000) return;
+  ultimo=agora; lastLat=lat; lastLng=lon; clima(lat,lon);
+  document.getElementById('temp').innerHTML=`${DEVICE_ID} 🔋 ${BAT}% | Precisão: ${Math.round(accuracy)}m<br>GPS OK - RÁDIO ON`;
+  try{await fetch(`${U}/rest/v1/rastreador`,{method:"POST",headers:{apikey:K,Authorization:"Bearer "+K,"Content-Type":"application/json",Prefer:"resolution=merge-duplicates"},body:JSON.stringify({device_id:DEVICE_ID,lat:lat,lng:lon,battery:BAT,updated_at:new Date().toISOString()})});}catch(e){}
+}
+async function iniciar(){
+  if(iniciado) return; iniciado=true;
+  document.getElementById('btn').style.display='none';
+  document.body.classList.add('acordado'); setTimeout(()=>document.body.classList.remove('acordado'),8000);
+  try{document.documentElement.requestFullscreen?.();}catch(e){}
+  await pedirWakeLock();
+  try{await audio.play();}catch(e){}
+  // PEDE PERMISSÃO EXPLÍCITA
+  navigator.geolocation.getCurrentPosition(p=>enviar(p.coords.latitude,p.coords.longitude,true,p.coords.accuracy),()=>{document.getElementById('temp').innerText='PERMISSÃO NEGADA! Ative a localização';},{enableHighAccuracy:true,timeout:15000});
+  navigator.geolocation.watchPosition(p=>enviar(p.coords.latitude,p.coords.longitude,false,p.coords.accuracy),()=>{},{enableHighAccuracy:true,maximumAge:0,timeout:10000});
+  setInterval(()=>{if(lastLat!==0)enviar(lastLat,lastLng,true,10);},30000);
+  audio.addEventListener('error',()=>setTimeout(()=>{audio.src=RADIO_URL;audio.play().catch(()=>{});},3000));
+}
 document.getElementById('btn').onclick=iniciar;
 document.body.onclick=(e)=>{if(e.target.id!=='btn'){if(!iniciado)iniciar();document.body.classList.add('acordado');setTimeout(()=>document.body.classList.remove('acordado'),8000);}};
 </script>
