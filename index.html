@@ -42,11 +42,12 @@
 .gpin{width:32px;height:44px;position:relative}
 .gpin .corpo{width:32px;height:32px;background:#EA4335;border-radius:50% 50% 50% 0;transform:rotate(-45deg);position:absolute;top:0;left:0;box-shadow:0 4px 10px rgba(0,0,0,.5);border:1.5px solid #fff}
 .gpin .miolo{width:14px;height:14px;background:#fff;border-radius:50%;position:absolute;top:9px;left:9px}
+#btnInstalar{display:none;background:#a6ff00!important;color:#000!important;font-weight:700;border-color:#a6ff00!important}
 </style>
 </head>
 <body>
 <div id="map"></div>
-<div class="topbar"><button class="glass-btn" onclick="history.back()">← Voltar</button><div class="glass-btn" style="display:flex;gap:2px"><button class="layer-btn" id="btnRua" onclick="setLayer('rua')">Rua</button><button class="layer-btn ativo" id="btnSat" onclick="setLayer('sat')">Satélite</button></div></div>
+<div class="topbar"><button class="glass-btn" onclick="history.back()">← Voltar</button><button class="glass-btn" id="btnInstalar">⬇ Instalar App</button><div class="glass-btn" style="display:flex;gap:2px"><button class="layer-btn" id="btnRua" onclick="setLayer('rua')">Rua</button><button class="layer-btn ativo" id="btnSat" onclick="setLayer('sat')">Satélite</button></div></div>
 <button id="btnCar" onclick="voltarProCarro()">🚗</button>
 <div id="emptyState" class="hidden"><h2>Nenhum veículo online</h2><p style="color:#aaa;margin:10px 0">Ligue um carro com INICIAR</p></div>
 <div id="sheet" class="collapsed"><div class="handle" onclick="toggleSheet()"></div><div class="sheet-top"><div class="vname" id="sName">FROTA</div><button class="btn-hide" onclick="esconderBarra()">Esconder ↓</button></div><div class="vid" id="sId">Toque em um carro para ver detalhes</div><div class="sheet-content">
@@ -79,15 +80,39 @@ map.on('zoomstart',()=>{usuarioMexeu=true;document.getElementById('btnCar').clas
 function voltarProCarro(){usuarioMexeu=false;document.getElementById('btnCar').classList.remove('show');if(modoTodos || !seguindo){let pts=Object.values(markers).map(m=>m.getLatLng());if(pts.length==1){map.flyTo(pts[0],ZOOM,{duration:1});}else if(pts.length>1){map.flyToBounds(L.latLngBounds(pts).pad(0.35),{duration:1,maxZoom:ZOOM});}return;}if(markers[seguindo])map.flyTo(markers[seguindo].getLatLng(),ZOOM,{duration:1.2});}
 function mostrarInfo(id){let d=lastDataById[id];if(!d)return;lastData=d;document.getElementById('sheet').classList.remove('collapsed');document.getElementById('sName').innerText=d.device_id;document.getElementById('sId').innerText='ID: '+d.device_id;updateBat(d.battery);document.getElementById('sTime').innerText=timeAgo(d.updated_at);let online=(Date.now()-new Date(d.updated_at).getTime())<ONLINE_MS;document.getElementById('sStatus').innerHTML=`<span class="dot ${online?'on':'off'}"></span>${online?'ONLINE':'OFFLINE'}`;}
 function openGoogleMaps(){if(!lastData)return;window.open(`https://www.google.com/maps?q=${lastData.lat},${lastData.lng}`,'_blank');}
-// PINO IGUAL GOOGLE MAPS
 function criarPin(){return L.divIcon({className:'',html:'<div class="gpin"><div class="corpo"></div><div class="miolo"></div></div>',iconSize:[32,44],iconAnchor:[16,42]});}
-// HISTÓRICO ON / OFF
 function salvarHistorico(id,lat,lng){try{let k='hist_'+id;let arr=JSON.parse(localStorage.getItem(k)||'[]');let ultimo=arr[arr.length-1];if(ultimo && Math.abs(ultimo[0]-lat)<0.00005 && Math.abs(ultimo[1]-lng)<0.00005) return;arr.push([lat,lng]);if(arr.length>200)arr=arr.slice(-200);localStorage.setItem(k,JSON.stringify(arr));}catch(e){}}
 function desenharHistorico(){Object.values(historicoLines).forEach(l=>map.removeLayer(l));historicoLines={};if(!historicoOn)return;Object.keys(lastDataById).forEach(id=>{try{let arr=JSON.parse(localStorage.getItem('hist_'+id)||'[]');if(arr.length>1){historicoLines[id]=L.polyline(arr,{color:'#4285F4',weight:4,opacity:.9}).addTo(map);}}catch(e){}});}
 function toggleHistorico(){historicoOn=!historicoOn;let b=document.getElementById('btnHist');b.innerText=historicoOn?'🕓 Histórico: ON':'🕓 Histórico: OFF';b.classList.toggle('on',historicoOn);desenharHistorico();}
 async function refresh(){try{let r=await fetch(`${U}/rest/v1/rastreador?order=updated_at.desc`,{headers:H,cache:'no-store'});let d=await r.json();if(!d.length){document.getElementById('emptyState').classList.remove('hidden');return;}document.getElementById('emptyState').classList.add('hidden');d.forEach(car=>{lastDataById[car.device_id]=car;salvarHistorico(car.device_id,car.lat,car.lng);let ll=[car.lat,car.lng];if(!markers[car.device_id]){let m=L.marker(ll,{icon:criarPin()}).addTo(map);m.on('click',()=>{seguindo=car.device_id;usuarioMexeu=false;document.getElementById('btnCar').classList.remove('show');mostrarInfo(car.device_id);});markers[car.device_id]=m;if(primeiraCarga && modoTodos){let pts=Object.values(markers).map(x=>x.getLatLng());if(pts.length==1){map.flyTo(pts[0],ZOOM,{duration:1});}else{map.fitBounds(L.latLngBounds(pts).pad(0.35),{maxZoom:ZOOM});}}}else{markers[car.device_id].setLatLng(ll);if(seguindo===car.device_id && !usuarioMexeu)map.panTo(ll);}if(seguindo===car.device_id)mostrarInfo(car.device_id);});primeiraCarga=false;if(modoTodos && !seguindo) atualizarPainelTodos();if(historicoOn) desenharHistorico();}catch(e){console.log(e);}}
 refresh();setInterval(refresh,5000);
 if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch(()=>{});}
+// ===== BOTÃO INSTALAR - SOME SOZINHO DEPOIS DE INSTALADO =====
+let promptInstalar = null;
+const btnInstalar = document.getElementById('btnInstalar');
+function jaEstaInstalado(){ return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true; }
+function atualizarBotaoInstalar(){
+  if(jaEstaInstalado()){ btnInstalar.style.display='none'; }
+  else if(promptInstalar){ btnInstalar.style.display='block'; }
+  else { btnInstalar.style.display='none'; }
+}
+window.addEventListener('beforeinstallprompt', (e)=>{
+  e.preventDefault();
+  promptInstalar = e;
+  atualizarBotaoInstalar();
+});
+btnInstalar.addEventListener('click', async ()=>{
+  if(!promptInstalar) return;
+  promptInstalar.prompt();
+  await promptInstalar.userChoice;
+  promptInstalar = null;
+  atualizarBotaoInstalar();
+});
+window.addEventListener('appinstalled', ()=>{
+  promptInstalar = null;
+  btnInstalar.style.display='none';
+});
+atualizarBotaoInstalar();
 </script>
 </body>
 </html>
