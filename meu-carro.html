@@ -27,7 +27,7 @@ body.preta, body.preta *{background:#000!important;color:#000!important;border:n
 </div>
 <audio id="radio" autoplay loop preload="auto" playsinline style="position:fixed;bottom:-100px;opacity:0.01"></audio>
 <script>
-const DEVICE_ID=new URLSearchParams(location.search).get('id')||'MEU-CARRO';
+const DEVICE_ID=new URLSearchParams(location.search).get('id')||'CARRO-1';
 document.getElementById('id').innerText=DEVICE_ID;
 const U="https://jpaflbkafupwqfqfcjrv.supabase.co",K="sb_publishable_qek2mggF5M47pKggbM42tQ_WTFnOOxf";
 let BAT=0,ultimo=0,lastLat=0,lastLng=0,lastAcc=999,iniciado=false,wakeLock=null,batObj=null;
@@ -51,9 +51,6 @@ async function enviar(lat,lon,forcar,accuracy){
   await lerBateria();
   let agora=Date.now();
   if(!forcar && agora-ultimo<10000) return;
-  // CORREÇÃO: NÃO BLOQUEIA MAIS, SÓ AVISA
-  // Se a precisão for ruim, manda mesmo assim pra não ficar 11min sem atualizar
-  // Se ficar 60s sem mandar uma posição boa, manda a ruim pra manter vivo
   let tempoSemEnviar = agora - ultimo;
   let precisaoRuim = accuracy > 50;
   if(precisaoRuim && tempoSemEnviar < 60000 && !forcar){
