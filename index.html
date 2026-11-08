@@ -15,9 +15,8 @@
 .topbar{position:fixed;top:12px;top:calc(12px + env(safe-area-inset-top));left:12px;right:12px;z-index:999;display:flex;justify-content:space-between;gap:8px}
 .glass-btn{background:rgba(20,20,20,.45);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.15);border-radius:18px;color:#fff;padding:11px 14px;cursor:pointer;font-size:13px}
 .layer-btn{background:none;border:none;color:#aaa;cursor:pointer;padding:6px 8px}.layer-btn.ativo{background:rgba(255,255,255,.15);color:#fff;border-radius:10px}
-/* BOTÃO VOLTAR = CARRO QUASE TRANSPARENTE - SÓ QUANDO EXPLORA */
-#btnCar{position:fixed;right:16px;bottom:120px;z-index:1000;width:60px;height:60px;border-radius:50%;background:rgba(255,255,255,.25);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.3);font-size:32px;cursor:pointer;display:none;align-items:center;justify-content:center;opacity:.35}
-#btnCar.show{display:flex}
+#btnCar{position:fixed;right:16px;bottom:120px;z-index:1000;width:60px;height:60px;border-radius:50%;background:rgba(255,255,255,.25);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.3);font-size:32px;cursor:pointer;display:none!important;align-items:center;justify-content:center;opacity:.35;touch-action:none;user-select:none}
+#btnCar.show{display:flex!important}
 #sheet{position:fixed;left:50%;bottom:0;transform:translateX(-50%);z-index:999;width:100%;max-width:520px;background:rgba(15,15,15,.35);backdrop-filter:blur(25px) saturate(1.2);-webkit-backdrop-filter:blur(25px) saturate(1.2);border-top:1px solid rgba(255,255,255,.18);border-radius:28px 28px 0 0;transition:transform .35s;padding-bottom:env(safe-area-inset-bottom)}
 #sheet.collapsed{transform:translateX(-50%) translateY(calc(100% - 56px))}
 #sheet.hiddenBar{transform:translateX(-50%) translateY(100%)}
@@ -38,7 +37,6 @@
 .bat-icon{width:30px;height:15px;border:2px solid #fff;border-radius:4px;position:relative;flex-shrink:0;display:inline-block;background:rgba(0,0,0,.3);overflow:hidden}
 .bat-icon::after{content:'';position:absolute;right:-5px;top:3px;width:3px;height:6px;background:#fff;border-radius:1px}
 .bat-fill{height:100%;display:block}.bat-fill.high{background:#a6ff00}.bat-fill.med{background:#ffcc00}.bat-fill.low{background:#ff4444}
-/* PINO IGUAL GOOGLE MAPS */
 .gpin{width:32px;height:44px;position:relative}
 .gpin .corpo{width:32px;height:32px;background:#EA4335;border-radius:50% 50% 50% 0;transform:rotate(-45deg);position:absolute;top:0;left:0;box-shadow:0 4px 10px rgba(0,0,0,.5);border:1.5px solid #fff}
 .gpin .miolo{width:14px;height:14px;background:#fff;border-radius:50%;position:absolute;top:9px;left:9px}
@@ -47,8 +45,8 @@
 </head>
 <body>
 <div id="map"></div>
-<div class="topbar"><button class="glass-btn" onclick="history.back()">← Voltar</button><button class="glass-btn" id="btnInstalar">⬇ Instalar App</button><div class="glass-btn" style="display:flex;gap:2px"><button class="layer-btn" id="btnRua" onclick="setLayer('rua')">Rua</button><button class="layer-btn ativo" id="btnSat" onclick="setLayer('sat')">Satélite</button></div></div>
-<button id="btnCar" onclick="voltarProCarro()">🚗</button>
+<div class="topbar"><button class="glass-btn" onclick="atualizarAgora()">↻ Atualizar</button><button class="glass-btn" id="btnInstalar">⬇ Instalar App</button><div class="glass-btn" style="display:flex;gap:2px"><button class="layer-btn" id="btnRua" onclick="setLayer('rua')">Rua</button><button class="layer-btn ativo" id="btnSat" onclick="setLayer('sat')">Satélite</button></div></div>
+<button id="btnCar">🚗</button>
 <div id="emptyState" class="hidden"><h2>Nenhum veículo online</h2><p style="color:#aaa;margin:10px 0">Ligue um carro com INICIAR</p></div>
 <div id="sheet" class="collapsed"><div class="handle" onclick="toggleSheet()"></div><div class="sheet-top"><div class="vname" id="sName">FROTA</div><button class="btn-hide" onclick="esconderBarra()">Esconder ↓</button></div><div class="vid" id="sId">Toque em um carro para ver detalhes</div><div class="sheet-content">
 <div class="carros-dentro" id="carrosBar"><button class="todos ativo" onclick="verTodos()">🌐 TODOS</button><button onclick="selecionarCarro('CARRO-1')">📍 CARRO-1</button><button onclick="selecionarCarro('CARRO-2')">📍 CARRO-2</button><button onclick="selecionarCarro('CARRO-3')">📍 CARRO-3</button></div>
@@ -75,6 +73,7 @@ function esconderBarra(){document.getElementById('sheet').classList.add('hiddenB
 function mostrarBarra(){let s=document.getElementById('sheet');s.classList.remove('hiddenBar');s.classList.remove('collapsed');document.getElementById('showBar').classList.remove('show');}
 function selecionarCarro(id){modoTodos=false;seguindo=id;usuarioMexeu=false;document.getElementById('btnCar').classList.remove('show');document.querySelectorAll('#carrosBar button').forEach(b=>b.classList.remove('ativo'));let btns=[...document.querySelectorAll('#carrosBar button')];let b=btns.find(x=>x.textContent.includes(id));if(b)b.classList.add('ativo');if(markers[id]){map.flyTo(markers[id].getLatLng(),ZOOM,{duration:1.2});mostrarInfo(id);}document.getElementById('sheet').classList.remove('collapsed');}
 function verTodos(){modoTodos=true;seguindo=null;usuarioMexeu=false;document.getElementById('btnCar').classList.remove('show');document.querySelectorAll('#carrosBar button').forEach(b=>b.classList.remove('ativo'));document.querySelector('.todos').classList.add('ativo');let pts=Object.values(markers).map(m=>m.getLatLng());if(pts.length){if(pts.length==1){map.flyTo(pts[0],ZOOM,{duration:1});}else{map.flyToBounds(L.latLngBounds(pts).pad(0.35),{duration:1,maxZoom:ZOOM});}}atualizarPainelTodos();}
+// SÓ MOSTRA O BOTÃO DO CARRO QUANDO EXPLORA O MAPA
 map.on('dragstart',()=>{usuarioMexeu=true;seguindo=null;document.getElementById('btnCar').classList.add('show');});
 map.on('zoomstart',()=>{usuarioMexeu=true;document.getElementById('btnCar').classList.add('show');});
 function voltarProCarro(){usuarioMexeu=false;document.getElementById('btnCar').classList.remove('show');if(modoTodos || !seguindo){let pts=Object.values(markers).map(m=>m.getLatLng());if(pts.length==1){map.flyTo(pts[0],ZOOM,{duration:1});}else if(pts.length>1){map.flyToBounds(L.latLngBounds(pts).pad(0.35),{duration:1,maxZoom:ZOOM});}return;}if(markers[seguindo])map.flyTo(markers[seguindo].getLatLng(),ZOOM,{duration:1.2});}
@@ -113,6 +112,58 @@ window.addEventListener('appinstalled', ()=>{
   btnInstalar.style.display='none';
 });
 atualizarBotaoInstalar();
+// ===== BOTÃO ATUALIZAR =====
+function atualizarAgora(){
+  refresh();
+  voltarProCarro();
+  let btns = document.querySelectorAll('.topbar .glass-btn');
+  let b = btns[0];
+  b.innerText = '✓ Atualizado';
+  setTimeout(()=>{ b.innerText = '↻ Atualizar'; }, 1000);
+}
+// ===== BOTÃO DO CARRO ARRASTÁVEL - LEMBRA ONDE VOCÊ DEIXOU =====
+let arrastandoCar = false, foiArrastar = false, startX=0, startY=0, startLeft=0, startTop=0;
+const btnCarEl = document.getElementById('btnCar');
+let posSalva = JSON.parse(localStorage.getItem('posBtnCar') || 'null');
+if(posSalva){
+  btnCarEl.style.right = 'auto';
+  btnCarEl.style.bottom = 'auto';
+  btnCarEl.style.left = posSalva.left + 'px';
+  btnCarEl.style.top = posSalva.top + 'px';
+}
+btnCarEl.addEventListener('touchstart', (e)=>{
+  let t = e.touches[0];
+  arrastandoCar = true; foiArrastar = false;
+  startX = t.clientX; startY = t.clientY;
+  let r = btnCarEl.getBoundingClientRect();
+  startLeft = r.left; startTop = r.top;
+}, {passive:true});
+btnCarEl.addEventListener('touchmove', (e)=>{
+  if(!arrastandoCar) return;
+  let t = e.touches[0];
+  let dx = t.clientX - startX, dy = t.clientY - startY;
+  if(Math.abs(dx) > 6 || Math.abs(dy) > 6) foiArrastar = true;
+  if(!foiArrastar) return;
+  e.preventDefault();
+  let novoLeft = Math.max(0, Math.min(window.innerWidth - 60, startLeft + dx));
+  let novoTop = Math.max(0, Math.min(window.innerHeight - 60, startTop + dy));
+  btnCarEl.style.right = 'auto'; btnCarEl.style.bottom = 'auto';
+  btnCarEl.style.left = novoLeft + 'px';
+  btnCarEl.style.top = novoTop + 'px';
+}, {passive:false});
+btnCarEl.addEventListener('touchend', ()=>{
+  if(!arrastandoCar) return;
+  arrastandoCar = false;
+  if(foiArrastar){
+    let r = btnCarEl.getBoundingClientRect();
+    localStorage.setItem('posBtnCar', JSON.stringify({left: r.left, top: r.top}));
+    setTimeout(()=>{ foiArrastar = false; }, 150);
+  }
+});
+btnCarEl.addEventListener('click', (e)=>{
+  if(foiArrastar){ e.stopPropagation(); e.preventDefault(); return; }
+  voltarProCarro();
+});
 </script>
 </body>
 </html>
