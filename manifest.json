@@ -1,18 +1,16 @@
 {
-  "name": "MEU-CARRO",
-  "short_name": "MEU-CARRO",
-  "description": "Rastreamento MEU-CARRO",
-  "start_url": "/meu-carro/index.html?id=MEU-CARRO",
+  "name": "Rastreador",
+  "short_name": "Rastreador",
+  "description": "Rastreamento ao vivo",
+  "start_url": "./index.html",
   "display": "standalone",
-  "background_color": "#0a0a0a",
-  "theme_color": "#0a0a0a",
-  "orientation": "portrait",
+  "background_color": "#000000",
+  "theme_color": "#000000",
   "icons": [
     {
-      "src": "https://cdn-icons-png.flaticon.com/512/3202/3202926.png",
+      "src": "https://cdn-icons-png.flaticon.com/512/854/854878.png",
       "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any maskable"
+      "type": "image/png"
     }
   ]
 }
