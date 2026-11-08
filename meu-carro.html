@@ -38,7 +38,6 @@ async function lerBateria(){
   }catch(e){}
 }
 lerBateria();
-// LÊ A BATERIA DE NOVO A CADA 10s - NÃO TRAVA MAIS NO 47%
 setInterval(lerBateria,10000);
 function clock(){document.getElementById('h').innerText=new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});document.getElementById('d').innerText=new Date().toLocaleDateString('pt-BR');}
 setInterval(clock,1000);clock();
@@ -52,15 +51,18 @@ async function enviar(lat,lon,forcar,accuracy){
   await lerBateria();
   let agora=Date.now();
   if(!forcar && agora-ultimo<10000) return;
-  // ===== CORREÇÃO PRECISÃO: NÃO MANDA POSIÇÃO RUIM =====
-  // Se o GPS tiver errando mais que 50m, não manda, espera melhorar
-  // Antes ele mandava qualquer coisa, por isso o pino pulava 30m
-  if(accuracy > 50){
-    document.getElementById('temp').innerHTML=`${DEVICE_ID} 🔋 ${BAT}% | Precisão: ${Math.round(accuracy)}m<br>GPS RUIM - AGUARDANDO MELHORAR...<br>RÁDIO ON`;
+  // CORREÇÃO: NÃO BLOQUEIA MAIS, SÓ AVISA
+  // Se a precisão for ruim, manda mesmo assim pra não ficar 11min sem atualizar
+  // Se ficar 60s sem mandar uma posição boa, manda a ruim pra manter vivo
+  let tempoSemEnviar = agora - ultimo;
+  let precisaoRuim = accuracy > 50;
+  if(precisaoRuim && tempoSemEnviar < 60000 && !forcar){
+    document.getElementById('temp').innerHTML=`${DEVICE_ID} 🔋 ${BAT}% | Precisão: ${Math.round(accuracy)}m<br>GPS RUIM - tentando melhorar...<br>RÁDIO ON`;
     return;
   }
   ultimo=agora; lastLat=lat; lastLng=lon; lastAcc=accuracy; clima(lat,lon);
-  document.getElementById('temp').innerHTML=`${DEVICE_ID} 🔋 ${BAT}% | Precisão: ${Math.round(accuracy)}m<br>GPS OK - RÁDIO ON`;
+  let aviso = precisaoRuim ? ' (GPS RUIM)' : '';
+  document.getElementById('temp').innerHTML=`${DEVICE_ID} 🔋 ${BAT}% | Precisão: ${Math.round(accuracy)}m${aviso}<br>GPS OK - RÁDIO ON`;
   try{await fetch(`${U}/rest/v1/rastreador`,{method:"POST",headers:{apikey:K,Authorization:"Bearer "+K,"Content-Type":"application/json",Prefer:"resolution=merge-duplicates"},body:JSON.stringify({device_id:DEVICE_ID,lat:lat,lng:lon,accuracy:Math.round(accuracy),battery:BAT,updated_at:new Date().toISOString()})});}catch(e){}
 }
 async function iniciar(){
@@ -73,7 +75,6 @@ async function iniciar(){
   setTimeout(()=>{ document.body.classList.add('preta'); }, 3000);
   navigator.geolocation.getCurrentPosition(p=>enviar(p.coords.latitude,p.coords.longitude,true,p.coords.accuracy),()=>{document.getElementById('temp').innerText='ATIVE A LOCALIZAÇÃO!';},{enableHighAccuracy:true,timeout:20000,maximumAge:0});
   navigator.geolocation.watchPosition(p=>enviar(p.coords.latitude,p.coords.longitude,false,p.coords.accuracy),()=>{}, {enableHighAccuracy:true,maximumAge:0,timeout:20000});
-  // Manda de 15 em 15s a última posição BOA, com a precisão real dela (antes mandava 10 fake)
   setInterval(()=>{if(lastLat!==0)enviar(lastLat,lastLng,true,lastAcc);},15000);
   audio.addEventListener('error',()=>setTimeout(()=>{audio.src=RADIO_URL;audio.play().catch(()=>{});},3000));
   document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'){pedirWakeLock();audio.play().catch(()=>{});}});
