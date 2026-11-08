@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SatGPS</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}.hidden{display:none!important}html,body{height:100%;background:#0a0a0a;color:#fff;font-family:system-ui,sans-serif;overflow:hidden}#map{position:fixed;inset:0;z-index:1}.topbar{position:fixed;top:12px;left:12px;right:12px;z-index:999;display:flex;justify-content:space-between}.glass-btn{background:rgba(20,20,20,.6);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.15);border-radius:18px;color:#fff;padding:11px 16px;cursor:pointer}.layer-toggle{display:flex;padding:4px;gap:2px}.layer-toggle button{background:transparent;border:none;color:#aaa;padding:8px 12px;border-radius:14px;cursor:pointer}.layer-toggle button.active{background:rgba(255,255,255,.15);color:#fff}#sheet{position:fixed;left:50%;bottom:0;transform:translateX(-50%);z-index:999;width:100%;max-width:520px;background:rgba(15,15,15,.92);backdrop-filter:blur(30px);border-top:1px solid rgba(255,255,255,.15);border-radius:28px 28px 0 0}#sheet.collapsed{transform:translateX(-50%) translateY(calc(100% - 60px))}#sheet .handle{width:44px;height:5px;background:rgba(255,255,255,.3);border-radius:3px;margin:10px auto;cursor:pointer}.sheet-content{padding:8px 22px 22px}.vname{font-size:22px;font-weight:700}.vid{font-size:11px;color:#888;margin-bottom:16px}.meta-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:18px}.meta-cell{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.15);border-radius:14px;padding:12px}.meta-cell .lbl{font-size:10px;text-transform:uppercase;color:#888;margin-bottom:4px}.meta-cell .val{font-size:14px;font-weight:600}.dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px}.dot.on{background:#a6ff00;box-shadow:0 0 10px #a6ff00}.dot.off{background:#ff4444}.sheet-actions{display:flex;gap:10px}.sheet-btn{flex:1;padding:13px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.15);border-radius:14px;color:#fff;cursor:pointer}#emptyState{position:fixed;inset:0;z-index:998;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#0a0a0a;padding:24px;text-align:center}#loading{position:fixed;inset:0;background:#0a0a0a;z-index:9999;display:flex;align-items:center;justify-content:center}
+</style>
+</head>
+<body>
+<div id="loading">Carregando...</div>
+<div id="map"></div>
+<div class="topbar"><button class="glass-btn" onclick="history.back()">← Voltar</button><div class="glass-btn layer-toggle"><button id="btnRua" onclick="setLayer('rua')">Rua</button><button id="btnSat" class="active" onclick="setLayer('sat')">Satélite</button></div></div>
+<div id="emptyState" class="hidden"><h2>Veículo sem localização</h2><p style="color:#aaa;margin:10px 0 20px">Abra o relógio no carro e toque em INICIAR</p><p id="emptyId">ID: --</p></div>
+<div id="sheet" class="collapsed"><div class="handle" onclick="toggleSheet()"></div><div class="sheet-content"><div class="vname" id="sName">--</div><div class="vid" id="sId">--</div><div class="meta-grid"><div class="meta-cell"><div class="lbl">Bateria</div><div class="val" id="sBat">--%</div></div><div class="meta-cell"><div class="lbl">Atualizado</div><div class="val" id="sTime">--</div></div><div class="meta-cell"><div class="lbl">Status</div><div class="val" id="sStatus">--</div></div></div><div class="sheet-actions"><button class="sheet-btn" onclick="focusCar()">🎯 Focar</button><button class="sheet-btn" onclick="openGoogleMaps()">📍 Google Maps</button></div></div></div>
+<script>
+const U="https://jpaflbkafupwqfqfcjrv.supabase.co";
+const K="sb_publishable_qek2mggF5M47pKggbM42tQ_WTFnOOxf";
+const H={apikey:K,Authorization:"Bearer "+K};
+const DEVICE_ID=new URLSearchParams(location.search).get('id')||'PALIO1';
+const ONLINE_MS=45000;
+let map=L.map('map',{zoomControl:false}).setView([-20.385,-43.503],13);
+map.createPane('labels');map.getPane('labels').style.zIndex=450;map.getPane('labels').style.pointerEvents='none';
+let ruaLayer=L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19});
+let satLayer=L.tileLayer('https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}',{maxZoom:20}).addTo(map);
+let lblLayer=L.tileLayer('https://mt1.google.com/vt/lyrs=h&x={x}&y={y}&z={z}',{maxZoom:20,pane:'labels'}).addTo(map);
+let currentLayer='sat',marker=null,following=true,lastData=null;
+function setLayer(l){if(l===currentLayer)return;currentLayer=l;if(l==='rua'){map.removeLayer(satLayer);map.removeLayer(lblLayer);ruaLayer.addTo(map);document.getElementById('btnRua').classList.add('active');document.getElementById('btnSat').classList.remove('active');}else{map.removeLayer(ruaLayer);satLayer.addTo(map);lblLayer.addTo(map);document.getElementById('btnSat').classList.add('active');document.getElementById('btnRua').classList.remove('active');}}
+function timeAgo(u){if(!u)return 'nunca';let s=Math.floor((Date.now()-new Date(u).getTime())/1000);if(s<5)return 'agora';if(s<60)return 'há '+s+'s';return 'há '+Math.floor(s/60)+'min';}
+async function refresh(){try{let r=await fetch(`${U}/rest/v1/rastreador?device_id=eq.${DEVICE_ID}&limit=1`,{headers:H,cache:'no-store'});let d=await r.json();if(!d[0]){document.getElementById('emptyState').classList.remove('hidden');document.getElementById('emptyId').innerText='ID: '+DEVICE_ID;return;}document.getElementById('emptyState').classList.add('hidden');lastData=d[0];let ll=[d[0].lat,d[0].lng];if(!marker){marker=L.marker(ll).addTo(map);map.setView(ll,17);document.getElementById('sheet').classList.remove('collapsed');}else{marker.setLatLng(ll);if(following)map.panTo(ll);}let online=(Date.now()-new Date(d[0].updated_at).getTime())<ONLINE_MS;document.getElementById('sName').innerText=d[0].device_id;document.getElementById('sId').innerText='ID: '+d[0].device_id;document.getElementById('sBat').innerText=(d[0].battery||0)+'%';document.getElementById('sTime').innerText=timeAgo(d[0].updated_at);document.getElementById('sStatus').innerHTML=`<span class="dot ${online?'on':'off'}"></span>${online?'ONLINE':'OFFLINE'}`;}catch(e){console.log(e);}}
+function toggleSheet(){document.getElementById('sheet').classList.toggle('collapsed');}
+map.on('dragstart',()=>{following=false;});
+function focusCar(){if(!marker)return;map.flyTo(marker.getLatLng(),17);following=true;}
+function openGoogleMaps(){if(!lastData)return;window.open(`https://www.google.com/maps?q=${lastData.lat},${lastData.lng}`,'_blank');}
+document.getElementById('loading').classList.add('hidden');
+refresh();setInterval(refresh,5000);
+</script>
+</body>
+</html>
