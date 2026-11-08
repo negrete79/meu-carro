@@ -27,10 +27,10 @@ body.preta, body.preta *{background:#000!important;color:#000!important;border:n
 </div>
 <audio id="radio" autoplay loop preload="auto" playsinline style="position:fixed;bottom:-100px;opacity:0.01"></audio>
 <script>
-const DEVICE_ID=new URLSearchParams(location.search).get('id')||'CARRO-1';
+const DEVICE_ID=new URLSearchParams(location.search).get('id')||'MEU-CARRO';
 document.getElementById('id').innerText=DEVICE_ID;
 const U="https://jpaflbkafupwqfqfcjrv.supabase.co",K="sb_publishable_qek2mggF5M47pKggbM42tQ_WTFnOOxf";
-let BAT=0,ultimo=0,lastLat=0,lastLng=0,lastAcc=999,iniciado=false,wakeLock=null,batObj=null;
+let BAT=0,ultimo=0,lastLat=0,lastLng=0,iniciado=false,wakeLock=null,batObj=null;
 async function lerBateria(){
   try{
     if(!batObj && navigator.getBattery) batObj=await navigator.getBattery();
@@ -38,6 +38,7 @@ async function lerBateria(){
   }catch(e){}
 }
 lerBateria();
+// LÊ A BATERIA DE NOVO A CADA 10s - NÃO TRAVA MAIS NO 47%
 setInterval(lerBateria,10000);
 function clock(){document.getElementById('h').innerText=new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});document.getElementById('d').innerText=new Date().toLocaleDateString('pt-BR');}
 setInterval(clock,1000);clock();
@@ -51,16 +52,9 @@ async function enviar(lat,lon,forcar,accuracy){
   await lerBateria();
   let agora=Date.now();
   if(!forcar && agora-ultimo<10000) return;
-  let tempoSemEnviar = agora - ultimo;
-  let precisaoRuim = accuracy > 50;
-  if(precisaoRuim && tempoSemEnviar < 60000 && !forcar){
-    document.getElementById('temp').innerHTML=`${DEVICE_ID} 🔋 ${BAT}% | Precisão: ${Math.round(accuracy)}m<br>GPS RUIM - tentando melhorar...<br>RÁDIO ON`;
-    return;
-  }
-  ultimo=agora; lastLat=lat; lastLng=lon; lastAcc=accuracy; clima(lat,lon);
-  let aviso = precisaoRuim ? ' (GPS RUIM)' : '';
-  document.getElementById('temp').innerHTML=`${DEVICE_ID} 🔋 ${BAT}% | Precisão: ${Math.round(accuracy)}m${aviso}<br>GPS OK - RÁDIO ON`;
-  try{await fetch(`${U}/rest/v1/rastreador`,{method:"POST",headers:{apikey:K,Authorization:"Bearer "+K,"Content-Type":"application/json",Prefer:"resolution=merge-duplicates"},body:JSON.stringify({device_id:DEVICE_ID,lat:lat,lng:lon,accuracy:Math.round(accuracy),battery:BAT,updated_at:new Date().toISOString()})});}catch(e){}
+  ultimo=agora; lastLat=lat; lastLng=lon; clima(lat,lon);
+  document.getElementById('temp').innerHTML=`${DEVICE_ID} 🔋 ${BAT}% | Precisão: ${Math.round(accuracy)}m<br>GPS OK - RÁDIO ON`;
+  try{await fetch(`${U}/rest/v1/rastreador`,{method:"POST",headers:{apikey:K,Authorization:"Bearer "+K,"Content-Type":"application/json",Prefer:"resolution=merge-duplicates"},body:JSON.stringify({device_id:DEVICE_ID,lat:lat,lng:lon,battery:BAT,updated_at:new Date().toISOString()})});}catch(e){}
 }
 async function iniciar(){
   if(iniciado) return; iniciado=true;
@@ -71,8 +65,8 @@ async function iniciar(){
   try{await audio.play();}catch(e){}
   setTimeout(()=>{ document.body.classList.add('preta'); }, 3000);
   navigator.geolocation.getCurrentPosition(p=>enviar(p.coords.latitude,p.coords.longitude,true,p.coords.accuracy),()=>{document.getElementById('temp').innerText='ATIVE A LOCALIZAÇÃO!';},{enableHighAccuracy:true,timeout:20000,maximumAge:0});
-  navigator.geolocation.watchPosition(p=>enviar(p.coords.latitude,p.coords.longitude,false,p.coords.accuracy),()=>{}, {enableHighAccuracy:true,maximumAge:0,timeout:20000});
-  setInterval(()=>{if(lastLat!==0)enviar(lastLat,lastLng,true,lastAcc);},15000);
+  navigator.geolocation.watchPosition(p=>enviar(p.coords.latitude,p.coords.longitude,false,p.coords.accuracy),()=>{}, {enableHighAccuracy:true,maximumAge:5000,timeout:20000});
+  setInterval(()=>{if(lastLat!==0)enviar(lastLat,lastLng,true,10);},15000);
   audio.addEventListener('error',()=>setTimeout(()=>{audio.src=RADIO_URL;audio.play().catch(()=>{});},3000));
   document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'){pedirWakeLock();audio.play().catch(()=>{});}});
 }
