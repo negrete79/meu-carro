@@ -6,8 +6,7 @@
 <title>MEU-CARRO</title>
 <style>
 html,body{margin:0;height:100%;background:#000;overflow:hidden}
-/* PRETA MESMO - NADA APARECE */
-body.preta, body.preta *{background:#000!important;color:#000!important;border:none!important;opacity:0!important;visibility:hidden!important}
+body.preta, body.preta *{background:#000!important;color:#000!important;border:none!important;opacity:0!important;visibility:hidden!important;display:none!important}
 #tela{height:100%;display:flex;align-items:center;justify-content:center;flex-direction:column;font-family:monospace;background:#000}
 #h{font-size:70px;font-weight:bold;color:#fff}
 #clima{font-size:34px;margin-top:10px;color:#ccc}
@@ -55,7 +54,6 @@ async function iniciar(){
   try{document.documentElement.requestFullscreen?.();}catch(e){}
   await pedirWakeLock();
   try{await audio.play();}catch(e){}
-  // FICA PRETA MESMO - 3 SEGUNDOS DEPOIS E NÃO ACENDE MAIS
   setTimeout(()=>{ document.body.classList.add('preta'); }, 3000);
   navigator.geolocation.getCurrentPosition(p=>enviar(p.coords.latitude,p.coords.longitude,true,p.coords.accuracy),()=>{},{enableHighAccuracy:true,timeout:15000});
   navigator.geolocation.watchPosition(p=>enviar(p.coords.latitude,p.coords.longitude,false,p.coords.accuracy),()=>{},{enableHighAccuracy:true,maximumAge:0,timeout:10000});
@@ -64,7 +62,6 @@ async function iniciar(){
   document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'){pedirWakeLock();audio.play().catch(()=>{});}});
 }
 document.getElementById('btn').onclick=iniciar;
-// TOCAR NÃO ACENDE MAIS - SÓ MANTÉM A RÁDIO VIVA
 document.body.onclick=()=>{ if(!iniciado) iniciar(); else { audio.play().catch(()=>{}); pedirWakeLock(); } };
 </script>
 </body>
