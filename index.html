@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SatGPS</title>
+<title>SatGPS - MEU-CARRO</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <style>
@@ -20,7 +20,7 @@
 const U="https://jpaflbkafupwqfqfcjrv.supabase.co";
 const K="sb_publishable_qek2mggF5M47pKggbM42tQ_WTFnOOxf";
 const H={apikey:K,Authorization:"Bearer "+K};
-const DEVICE_ID=new URLSearchParams(location.search).get('id')||'PALIO1';
+const DEVICE_ID=new URLSearchParams(location.search).get('id')||'MEU-CARRO';
 const ONLINE_MS=45000;
 let map=L.map('map',{zoomControl:false}).setView([-20.385,-43.503],13);
 map.createPane('labels');map.getPane('labels').style.zIndex=450;map.getPane('labels').style.pointerEvents='none';
