@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>FROTA</title>
-<link rel="manifest" href="data:application/manifest+json,{%22name%22:%22CARRO%22,%22short_name%22:%22CARRO%22,%22display%22:%22standalone%22,%22background_color%22:%22%23000000%22,%22theme_color%22:%22%23000000%22,%22start_url%22:%22.%2Fpainel.html%22}">
+<title>CARRO</title>
+<link rel="manifest" href="./manifest.json">
 <meta name="theme-color" content="#000000">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -20,7 +20,6 @@
 .seg button.on{background:#fff;color:#000}
 .btn-carro{position:fixed;right:12px;top:70px;z-index:1000;width:54px;height:54px;border-radius:50%;background:rgba(0,0,0,.45);border:1px solid rgba(255,255,255,.25);backdrop-filter:blur(8px);font-size:28px;cursor:pointer;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transform:scale(.8);transition:opacity .4s,transform .4s}
 .btn-carro.mostrar{opacity:.65;pointer-events:auto;transform:scale(1)}
-.btn-carro:active{opacity:1;transform:scale(.95)}
 .painel{position:fixed;left:0;right:0;bottom:0;z-index:1000;background:rgba(10,18,25,.55);backdrop-filter:blur(12px);border-top:1px solid rgba(255,255,255,.15);border-radius:20px 20px 0 0;padding:14px 14px 18px;color:#fff;transition:transform .4s ease}
 .painel.escondido{transform:translateY(100%)}
 .puxador{width:60px;height:5px;background:rgba(255,255,255,.4);border-radius:99px;margin:-2px auto 12px;cursor:pointer}
@@ -50,7 +49,6 @@
 .bat-ponta{width:3px;height:10px;background:rgba(255,255,255,.85);border-radius:0 2px 2px 0;flex-shrink:0}
 .bat-pct{font-size:16px;font-weight:800;line-height:1}
 .bat-raio{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:13px;color:#000;font-weight:900;z-index:2;text-shadow:0 0 2px #fff}
-#btnInstalarPainel{position:fixed;left:12px;bottom:12px;z-index:1002;background:#a3e635;color:#000;border:none;padding:10px 14px;border-radius:999px;font-size:13px;font-weight:800;cursor:pointer;display:none}
 </style>
 </head>
 <body>
@@ -61,7 +59,6 @@
 </div>
 <button class="btn-carro" id="btnCarro" onclick="voltarProCarro()">🚗</button>
 <button class="btn-mostrar" id="btnMostrar" onclick="togglePainel()">▲ Mostrar painel</button>
-<button id="btnInstalarPainel">⬇ Instalar App</button>
 <div class="painel" id="painel">
 <div class="puxador" onclick="togglePainel()"></div>
 <div class="linha1">
@@ -80,18 +77,13 @@
 </div>
 </div>
 <script>
+if('serviceWorker' in navigator){ navigator.serviceWorker.register('./sw.js').catch(()=>{}); }
 const U="https://jpaflbkafupwqfqfcjrv.supabase.co", K="sb_publishable_qek2mggF5M47pKggbM42tQ_WTFnOOxf";
 let map=L.map('map',{zoomControl:false}).setView([-20.38,-43.5],15);
 let camadaRua=L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19});
 let camadaSat=L.tileLayer('https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}',{maxZoom:20});
 camadaSat.addTo(map);
-let markers={}, linhas={}, hist=[], histOn=false, dados=[], explorando=false, primeiraVez=true, voando=false, deferredPrompt=null;
-window.addEventListener('beforeinstallprompt',(e)=>{ e.preventDefault(); deferredPrompt=e; document.getElementById('btnInstalarPainel').style.display='block'; });
-document.getElementById('btnInstalarPainel').onclick=async()=>{
-  if(deferredPrompt){ deferredPrompt.prompt(); let r=await deferredPrompt.userChoice; deferredPrompt=null; if(r.outcome==='accepted') document.getElementById('btnInstalarPainel').style.display='none'; }
-  else alert('No Chrome: 3 pontinhos > Adicionar à tela inicial');
-};
-if(window.matchMedia('(display-mode: standalone)').matches) document.getElementById('btnInstalarPainel').style.display='none';
+let markers={}, circulos={}, linhas={}, hist=[], histOn=false, dados=[], explorando=false, primeiraVez=true, voando=false;
 function mostrarBtnCarro(mostrar){ document.getElementById('btnCarro').classList.toggle('mostrar', mostrar); }
 map.on('movestart', ()=>{ if(!primeiraVez && !voando){ explorando=true; mostrarBtnCarro(true); } });
 map.on('zoomstart', ()=>{ if(!primeiraVez && !voando){ explorando=true; mostrarBtnCarro(true); } });
@@ -123,6 +115,7 @@ function bateriaHTML(pct, charging){
 function txtBateria(c){ return (c.charging?'⚡ ':'')+(c.battery||0)+'%'; }
 function desenhar(){
   for(let k in markers){ map.removeLayer(markers[k]); delete markers[k]; }
+  for(let k in circulos){ map.removeLayer(circulos[k]); delete circulos[k]; }
   for(let k in linhas){ map.removeLayer(linhas[k]); delete linhas[k]; }
   let lista = dados;
   if(lista.length===0) return;
@@ -130,6 +123,10 @@ function desenhar(){
   lista.forEach(c=>{
     somaBat+=c.battery||0;
     if(c.charging) algumCarregando=true;
+    // CÍRCULO DE PRECISÃO - MOSTRA O ERRO REAL
+    if(c.accuracy && c.accuracy<200){
+      circulos[c.device_id]=L.circle([c.lat,c.lng],{radius:c.accuracy,color:'#a3e635',fillColor:'#a3e635',fillOpacity:0.15,weight:1}).addTo(map);
+    }
     let icone=L.divIcon({html:'<div class="pino-carro"><div class="onda"></div><div class="onda onda2"></div><div class="onda onda3"></div><div class="bolinha">🚗</div></div>',iconSize:[64,64],iconAnchor:[32,32],className:''});
     markers[c.device_id]=L.marker([c.lat,c.lng],{icon:icone}).addTo(map).bindPopup('<b>CARRO</b><br>'+txtBateria(c)+'<br>'+tempoAtras(c.updated_at));
     bounds.push([c.lat,c.lng]);
@@ -161,17 +158,12 @@ async function refresh(){
     desenhar();
   }catch(e){}
 }
-setInterval(()=>{
-  if(dados.length>0) document.getElementById('atualizado').innerText=tempoAtras(dados[0].updated_at);
-},1000);
+setInterval(()=>{ if(dados.length>0) document.getElementById('atualizado').innerText=tempoAtras(dados[0].updated_at); },1000);
 function atualizarAgora(){
   let b=document.getElementById('btnAtualizar');
   b.classList.add('atualizando');
   b.innerText='⟳ Atualizando...';
-  refresh().then(()=>{
-    b.innerText='✓ Atualizado agora';
-    setTimeout(()=>{ b.classList.remove('atualizando'); b.innerText='↻ Atualizar'; },1500);
-  });
+  refresh().then(()=>{ b.innerText='✓ Atualizado agora'; setTimeout(()=>{ b.classList.remove('atualizando'); b.innerText='↻ Atualizar'; },1500); });
   if(!explorando) voltarProCarro();
 }
 function voltarProCarro(){
