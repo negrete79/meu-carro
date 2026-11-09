@@ -11,29 +11,44 @@
 #map{position:fixed;inset:0;z-index:1}
 .topo{position:fixed;top:12px;left:12px;right:12px;z-index:1000;display:flex;justify-content:space-between;gap:10px;pointer-events:none}
 .topo > *{pointer-events:auto}
-.btn-topo{background:rgba(0,0,0,.7);color:#fff;border:1px solid rgba(255,255,255,.2);backdrop-filter:blur(10px);padding:10px 14px;border-radius:999px;font-size:14px;font-weight:600;cursor:pointer}
-.seg{display:flex;background:rgba(0,0,0,.7);border:1px solid rgba(255,255,255,.2);backdrop-filter:blur(10px);border-radius:999px;padding:3px;gap:2px}
+.btn-topo{background:rgba(0,0,0,.55);color:#fff;border:1px solid rgba(255,255,255,.25);backdrop-filter:blur(10px);padding:10px 14px;border-radius:999px;font-size:14px;font-weight:600;cursor:pointer;transition:all .3s}
+.btn-topo.atualizando{background:#a3e635;color:#000;border-color:#a3e635;transform:scale(1.05)}
+.seg{display:flex;background:rgba(0,0,0,.55);border:1px solid rgba(255,255,255,.25);backdrop-filter:blur(10px);border-radius:999px;padding:3px;gap:2px}
 .seg button{border:0;background:transparent;color:#ccc;padding:8px 14px;border-radius:999px;font-size:14px;font-weight:600;cursor:pointer}
 .seg button.on{background:#fff;color:#000}
-.btn-carro{position:fixed;right:12px;top:70px;z-index:1000;width:54px;height:54px;border-radius:50%;background:rgba(0,0,0,.7);border:1px solid rgba(255,255,255,.2);backdrop-filter:blur(10px);font-size:28px;cursor:pointer;display:flex;align-items:center;justify-content:center}
-.painel{position:fixed;left:0;right:0;bottom:0;z-index:1000;background:rgba(10,18,25,.92);backdrop-filter:blur(15px);border-top:1px solid rgba(255,255,255,.15);border-radius:20px 20px 0 0;padding:14px 14px 18px;color:#fff;transition:transform .3s}
-.painel.escondido{transform:translateY(calc(100% - 38px))}
-.puxador{width:60px;height:5px;background:rgba(255,255,255,.3);border-radius:99px;margin:-2px auto 12px}
+.btn-carro{position:fixed;right:12px;top:70px;z-index:1000;width:54px;height:54px;border-radius:50%;background:rgba(0,0,0,.45);border:1px solid rgba(255,255,255,.25);backdrop-filter:blur(8px);font-size:28px;cursor:pointer;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transform:scale(.8);transition:opacity .4s,transform .4s}
+.btn-carro.mostrar{opacity:.65;pointer-events:auto;transform:scale(1)}
+.btn-carro:active{opacity:1;transform:scale(.95)}
+.painel{position:fixed;left:0;right:0;bottom:0;z-index:1000;background:rgba(10,18,25,.55);backdrop-filter:blur(12px);border-top:1px solid rgba(255,255,255,.15);border-radius:20px 20px 0 0;padding:14px 14px 18px;color:#fff;transition:transform .4s ease}
+.painel.escondido{transform:translateY(100%)}
+.puxador{width:60px;height:5px;background:rgba(255,255,255,.4);border-radius:99px;margin:-2px auto 12px;cursor:pointer}
 .linha1{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
-.linha1 h2{margin:0;font-size:22px}
-.linha1 p{margin:2px 0 0;color:#9fb0be;font-size:13px}
-.btn-esconder{background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.2);padding:8px 14px;border-radius:999px;font-size:13px;cursor:pointer;white-space:nowrap}
-.filtros{display:flex;gap:8px;margin:14px 0;overflow-x:auto;padding-bottom:2px}
-.filtros button{border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.08);color:#fff;padding:10px 16px;border-radius:999px;font-size:14px;font-weight:700;cursor:pointer;white-space:nowrap}
-.filtros button.on{background:#a3e635;color:#000;border-color:#a3e635}
-.cards{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
-.card{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:10px}
-.card small{color:#9fb0be;font-size:11px;letter-spacing:.5px}
+.linha1 h2{margin:0;font-size:22px;text-shadow:0 1px 4px rgba(0,0,0,.8)}
+.linha1 p{margin:2px 0 0;color:#d0dbe4;font-size:13px;text-shadow:0 1px 3px rgba(0,0,0,.8)}
+.btn-esconder{background:rgba(0,0,0,.35);color:#fff;border:1px solid rgba(255,255,255,.25);padding:12px 18px;border-radius:999px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap}
+.cards{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:14px}
+.card{background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.15);border-radius:14px;padding:10px}
+.card small{color:#d0dbe4;font-size:11px;letter-spacing:.5px}
 .card b{display:block;font-size:16px;margin-top:4px}
 .dot{width:10px;height:10px;border-radius:50%;background:#a3e635;display:inline-block;box-shadow:0 0 8px #a3e635}
-.precisao{text-align:center;color:#9fb0be;font-size:13px;margin:12px 0 8px}
+.precisao{text-align:center;color:#e2e8f0;font-size:13px;margin:12px 0 8px;text-shadow:0 1px 3px rgba(0,0,0,.9)}
 .acoes{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.acoes button{background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.15);padding:12px;border-radius:999px;font-size:14px;font-weight:600;cursor:pointer}
+.acoes button{background:rgba(0,0,0,.35);color:#fff;border:1px solid rgba(255,255,255,.2);padding:12px;border-radius:999px;font-size:14px;font-weight:600;cursor:pointer}
+.btn-mostrar{position:fixed;left:50%;transform:translateX(-50%) translateY(80px);bottom:16px;z-index:1001;background:rgba(0,0,0,.6);color:#fff;border:1px solid rgba(255,255,255,.3);backdrop-filter:blur(10px);padding:10px 18px;border-radius:999px;font-size:13px;font-weight:700;cursor:pointer;transition:transform .4s ease;white-space:nowrap}
+.btn-mostrar.visivel{transform:translateX(-50%) translateY(0)}
+.pino-carro{width:64px;height:64px;position:relative;display:flex;align-items:center;justify-content:center}
+.pino-carro .onda{position:absolute;inset:0;border-radius:50%;border:2px solid rgba(163,230,53,.9);animation:onda 2s ease-out infinite}
+.pino-carro .onda2{animation-delay:1s;border-color:rgba(255,255,255,.7)}
+.pino-carro .onda3{animation-delay:1.5s;border-color:rgba(163,230,53,.5)}
+@keyframes onda{0%{transform:scale(.6);opacity:1}100%{transform:scale(1.9);opacity:0}}
+.pino-carro .bolinha{width:44px;height:44px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.45);backdrop-filter:blur(2px);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:26px;position:relative;z-index:2;box-shadow:0 2px 8px rgba(0,0,0,.4)}
+/* BATERIA IGUAL DO CELULAR */
+.bat-wrap{display:flex;align-items:center;gap:6px;margin-top:4px}
+.bat-corpo{width:42px;height:22px;border:1.5px solid rgba(255,255,255,.85);border-radius:5px;padding:2px;position:relative;flex-shrink:0;background:rgba(0,0,0,.3)}
+.bat-fill{height:100%;border-radius:2px;transition:width .5s ease}
+.bat-ponta{width:3px;height:10px;background:rgba(255,255,255,.85);border-radius:0 2px 2px 0;flex-shrink:0}
+.bat-pct{font-size:16px;font-weight:800;line-height:1}
+.bat-raio{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:13px;color:#000;font-weight:900;z-index:2;text-shadow:0 0 2px #fff}
 </style>
 </head>
 <body>
@@ -42,22 +57,18 @@
 <button class="btn-topo" onclick="atualizarAgora()" id="btnAtualizar">↻ Atualizar</button>
 <div class="seg"><button id="btnRua" onclick="setTipo('rua')">Rua</button><button id="btnSat" onclick="setTipo('sat')" class="on">Satélite</button></div>
 </div>
-<button class="btn-carro" onclick="voltarProCarro()">🚗</button>
+<button class="btn-carro" id="btnCarro" onclick="voltarProCarro()">🚗</button>
+<button class="btn-mostrar" id="btnMostrar" onclick="togglePainel()">▲ Mostrar painel</button>
 <div class="painel" id="painel">
 <div class="puxador" onclick="togglePainel()"></div>
 <div class="linha1">
-<div><h2 id="titulo">FROTA - 0 carros</h2><p>Média de bateria dos carros</p></div>
+<div><h2 id="titulo">CARRO - 1 carro</h2><p>Bateria do carro</p></div>
 <button class="btn-esconder" onclick="togglePainel()" id="btnEsconder">Esconder ↓</button>
 </div>
-<div class="filtros">
-<button id="fTODOS" class="on" onclick="setFiltro('TODOS')">🌐 TODOS</button>
-<button id="fCARRO-1" onclick="setFiltro('CARRO-1')">📍 CARRO-1</button>
-<button id="fCARRO-2" onclick="setFiltro('CARRO-2')">📍 CARRO-2</button>
-</div>
 <div class="cards">
-<div class="card"><small>BATERIA</small><b id="bateria">--</b></div>
+<div class="card"><small>BATERIA</small><div id="bateria">--</div></div>
 <div class="card"><small>ATUALIZADO</small><b id="atualizado">--</b></div>
-<div class="card"><small>STATUS</small><b><span class="dot"></span> <span id="qtd">0 carros</span></b></div>
+<div class="card"><small>STATUS</small><b><span class="dot"></span> <span id="qtd">1 carro</span></b></div>
 </div>
 <div class="precisao" id="precisao">Precisão: aguardando GPS...</div>
 <div class="acoes">
@@ -69,56 +80,63 @@
 const U="https://jpaflbkafupwqfqfcjrv.supabase.co", K="sb_publishable_qek2mggF5M47pKggbM42tQ_WTFnOOxf";
 let map=L.map('map',{zoomControl:false}).setView([-20.38,-43.5],15);
 let camadaRua=L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19});
-let camadaSat=L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{maxZoom:19});
+let camadaSat=L.tileLayer('https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}',{maxZoom:20});
 camadaSat.addTo(map);
-let markers={}, linhas={}, hist=[], histOn=false, FILTRO='TODOS', dados=[];
+let markers={}, linhas={}, hist=[], histOn=false, dados=[], explorando=false, primeiraVez=true, voando=false;
+function mostrarBtnCarro(mostrar){ document.getElementById('btnCarro').classList.toggle('mostrar', mostrar); }
+map.on('movestart', ()=>{ if(!primeiraVez && !voando){ explorando=true; mostrarBtnCarro(true); } });
+map.on('zoomstart', ()=>{ if(!primeiraVez && !voando){ explorando=true; mostrarBtnCarro(true); } });
+map.on('moveend', ()=>{ if(voando){ voando=false; explorando=false; mostrarBtnCarro(false); } });
 function setTipo(t){
   if(t==='rua'){ map.removeLayer(camadaSat); camadaRua.addTo(map); document.getElementById('btnRua').className='on'; document.getElementById('btnSat').className=''; }
   else{ map.removeLayer(camadaRua); camadaSat.addTo(map); document.getElementById('btnSat').className='on'; document.getElementById('btnRua').className=''; }
 }
 function togglePainel(){
-  let p=document.getElementById('painel'); let esc=p.classList.toggle('escondido');
+  let p=document.getElementById('painel');
+  let esc=p.classList.toggle('escondido');
   document.getElementById('btnEsconder').innerText=esc?'Mostrar ↑':'Esconder ↓';
-}
-function setFiltro(f){
-  FILTRO=f;
-  document.getElementById('fTODOS').className=f==='TODOS'?'on':'';
-  document.getElementById('fCARRO-1').className=f==='CARRO-1'?'on':'';
-  document.getElementById('fCARRO-2').className=f==='CARRO-2'?'on':'';
-  desenhar();
+  document.getElementById('btnMostrar').classList.toggle('visivel', esc);
 }
 function tempoAtras(iso){
   if(!iso) return '--';
   let s=Math.floor((Date.now()-new Date(iso).getTime())/1000);
-  if(s<5) return 'agora';
+  if(s<3) return 'agora';
   if(s<60) return 'há '+s+'s';
   let m=Math.floor(s/60); if(m<60) return 'há '+m+'min';
   return 'há '+Math.floor(m/60)+'h';
 }
-function txtBateria(c){ return (c.charging?'⚡ ':'')+'🔋 '+(c.battery||0)+'%'; }
+// BATERIA IGUAL DO CELULAR - BARRINHA QUE ENCHE
+function bateriaHTML(pct, charging){
+  pct = pct || 0;
+  let cor = pct > 50 ? '#a3e635' : pct > 20 ? '#facc15' : '#ef4444';
+  let raio = charging ? '<div class="bat-raio">⚡</div>' : '';
+  return '<div class="bat-wrap"><div class="bat-corpo"><div class="bat-fill" style="width:'+pct+'%;background:'+cor+'"></div>'+raio+'</div><div class="bat-ponta"></div><span class="bat-pct">'+pct+'%</span></div>';
+}
+function txtBateria(c){ return (c.charging?'⚡ ':'')+(c.battery||0)+'%'; }
 function desenhar(){
   for(let k in markers){ map.removeLayer(markers[k]); delete markers[k]; }
   for(let k in linhas){ map.removeLayer(linhas[k]); delete linhas[k]; }
-  let lista = FILTRO==='TODOS' ? dados : dados.filter(d=>d.device_id===FILTRO);
+  let lista = dados;
   if(lista.length===0) return;
   let somaBat=0, bounds=[], algumCarregando=false;
   lista.forEach(c=>{
     somaBat+=c.battery||0;
     if(c.charging) algumCarregando=true;
-    let icone=L.divIcon({html:'<div style="font-size:32px;filter:drop-shadow(0 2px 4px rgba(0,0,0,.7))">🚗</div>',iconSize:[32,32],className:''});
-    markers[c.device_id]=L.marker([c.lat,c.lng],{icon:icone}).addTo(map).bindPopup('<b>'+c.device_id+'</b><br>'+txtBateria(c)+'<br>'+tempoAtras(c.updated_at));
+    let icone=L.divIcon({html:'<div class="pino-carro"><div class="onda"></div><div class="onda onda2"></div><div class="onda onda3"></div><div class="bolinha">🚗</div></div>',iconSize:[64,64],iconAnchor:[32,32],className:''});
+    markers[c.device_id]=L.marker([c.lat,c.lng],{icon:icone}).addTo(map).bindPopup('<b>CARRO</b><br>'+txtBateria(c)+'<br>'+tempoAtras(c.updated_at));
     bounds.push([c.lat,c.lng]);
   });
   let media=Math.round(somaBat/lista.length);
   let primeiro=lista[0];
-  document.getElementById('titulo').innerText='FROTA - '+lista.length+' carros';
-  document.getElementById('bateria').innerText=(algumCarregando?'⚡ ':'')+'🔋 '+media+'%';
+  document.getElementById('titulo').innerText='CARRO - 1 carro';
+  document.getElementById('bateria').innerHTML=bateriaHTML(media, algumCarregando);
   document.getElementById('atualizado').innerText=tempoAtras(primeiro.updated_at);
-  document.getElementById('qtd').innerText=lista.length+' carros';
-  document.getElementById('precisao').innerText='Precisão: '+(primeiro.accuracy?Math.round(primeiro.accuracy)+'m':'aguardando GPS...')+' • '+primeiro.device_id+(primeiro.charging?' • ⚡ Carregando':'');
-  if(bounds.length>0) map.fitBounds(bounds,{padding:[60,60],maxZoom:17});
+  document.getElementById('qtd').innerText='1 carro';
+  document.getElementById('precisao').innerText='Precisão: '+(primeiro.accuracy?Math.round(primeiro.accuracy)+'m':'aguardando GPS...')+' • CARRO'+(primeiro.charging?' • ⚡ Carregando':'');
+  if(primeiraVez){ primeiraVez=false; if(bounds.length>0) map.fitBounds(bounds,{padding:[60,60],maxZoom:17}); }
+  else if(!explorando && !voando){ if(bounds.length>0) map.fitBounds(bounds,{padding:[60,60],maxZoom:17}); }
   if(histOn && lista.length===1){
-    let pts=hist.filter(h=>h.device_id===lista[0].device_id).map(h=>[h.lat,h.lng]);
+    let pts=hist.map(h=>[h.lat,h.lng]);
     if(pts.length>1) linhas['h']=L.polyline(pts,{color:'#a3e635',weight:4}).addTo(map);
   }
 }
@@ -129,19 +147,32 @@ async function refresh(){
     let mapa={};
     j.forEach(c=>{ if(!mapa[c.device_id]) mapa[c.device_id]=c; });
     dados=Object.values(mapa).sort((a,b)=>new Date(b.updated_at)-new Date(a.updated_at));
+    if(dados.length>0) dados=[dados[0]];
     desenhar();
   }catch(e){}
 }
+setInterval(()=>{
+  if(dados.length>0) document.getElementById('atualizado').innerText=tempoAtras(dados[0].updated_at);
+},1000);
 function atualizarAgora(){
   let b=document.getElementById('btnAtualizar');
-  b.innerText='✓ Atualizado'; setTimeout(()=>b.innerText='↻ Atualizar',1200);
-  refresh(); voltarProCarro();
+  b.classList.add('atualizando');
+  b.innerText='⟳ Atualizando...';
+  refresh().then(()=>{
+    b.innerText='✓ Atualizado agora';
+    setTimeout(()=>{ b.classList.remove('atualizando'); b.innerText='↻ Atualizar'; },1500);
+  });
+  if(!explorando) voltarProCarro();
 }
 function voltarProCarro(){
-  let lista = FILTRO==='TODOS' ? dados : dados.filter(d=>d.device_id===FILTRO);
+  let lista = dados;
   if(lista.length===0) return;
-  if(lista.length===1) map.setView([lista[0].lat,lista[0].lng],17);
-  else map.fitBounds(lista.map(c=>[c.lat,c.lng]),{padding:[60,60],maxZoom:16});
+  explorando=false; mostrarBtnCarro(false);
+  primeiraVez=false;
+  voando=true;
+  if(lista.length===1){ map.flyTo([lista[0].lat,lista[0].lng],17,{duration:1.5}); }
+  else { map.flyToBounds(lista.map(c=>[c.lat,c.lng]),{padding:[60,60],maxZoom:16,duration:1.5}); }
+  setTimeout(()=>{ voando=false; if(!explorando) mostrarBtnCarro(false); },2000);
 }
 function toggleHistorico(){
   histOn=!histOn;
@@ -155,12 +186,12 @@ async function carregarHist(){
   }catch(e){}
 }
 function abrirGoogle(){
-  let lista = FILTRO==='TODOS' ? dados : dados.filter(d=>d.device_id===FILTRO);
+  let lista = dados;
   if(lista.length===0) return;
   window.open('https://www.google.com/maps?q='+lista[0].lat+','+lista[0].lng,'_blank');
 }
 refresh();
-setInterval(refresh,10000);
+setInterval(refresh,3000);
 </script>
 </body>
 </html>
