@@ -4,17 +4,18 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>CARRO</title>
-<link rel="manifest" href="./manifest.json">
+<link rel="manifest" href="./manifest-painel.json">
 <meta name="theme-color" content="#000000">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <style>
 *{box-sizing:border-box} html,body{margin:0;height:100%;font-family:system-ui,-apple-system,sans-serif;background:#000;overflow:hidden}
 #map{position:fixed;inset:0;z-index:1}
-.topo{position:fixed;top:12px;left:12px;right:12px;z-index:1000;display:flex;justify-content:space-between;gap:10px;pointer-events:none}
+.topo{position:fixed;top:12px;left:12px;right:12px;z-index:1000;display:flex;justify-content:space-between;gap:8px;pointer-events:none;flex-wrap:wrap}
 .topo > *{pointer-events:auto}
 .btn-topo{background:rgba(0,0,0,.55);color:#fff;border:1px solid rgba(255,255,255,.25);backdrop-filter:blur(10px);padding:10px 14px;border-radius:999px;font-size:14px;font-weight:600;cursor:pointer;transition:all .3s}
 .btn-topo.atualizando{background:#a3e635;color:#000;border-color:#a3e635;transform:scale(1.05)}
+.btn-instalar-topo{background:#a3e635;color:#000;border:none;padding:10px 14px;border-radius:999px;font-size:14px;font-weight:800;cursor:pointer}
 .seg{display:flex;background:rgba(0,0,0,.55);border:1px solid rgba(255,255,255,.25);backdrop-filter:blur(10px);border-radius:999px;padding:3px;gap:2px}
 .seg button{border:0;background:transparent;color:#ccc;padding:8px 14px;border-radius:999px;font-size:14px;font-weight:600;cursor:pointer}
 .seg button.on{background:#fff;color:#000}
@@ -49,14 +50,13 @@
 .bat-ponta{width:3px;height:10px;background:rgba(255,255,255,.85);border-radius:0 2px 2px 0;flex-shrink:0}
 .bat-pct{font-size:16px;font-weight:800;line-height:1}
 .bat-raio{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:13px;color:#000;font-weight:900;z-index:2;text-shadow:0 0 2px #fff}
-/* BOTÃO DE INSTALAR SÓ NO PAINEL */
-.btn-instalar{background:#a3e635;color:#000;border:none;padding:10px 14px;border-radius:999px;font-size:13px;font-weight:800;cursor:pointer;margin:10px 0 0;width:100%}
 </style>
 </head>
 <body>
 <div id="map"></div>
 <div class="topo">
 <button class="btn-topo" onclick="atualizarAgora()" id="btnAtualizar">↻ Atualizar</button>
+<button class="btn-instalar-topo" id="btnInstalar" onclick="instalarApp()">⬇ Instalar</button>
 <div class="seg"><button id="btnRua" onclick="setTipo('rua')">Rua</button><button id="btnSat" onclick="setTipo('sat')" class="on">Satélite</button></div>
 </div>
 <button class="btn-carro" id="btnCarro" onclick="voltarProCarro()">🚗</button>
@@ -77,7 +77,6 @@
 <button onclick="toggleHistorico()" id="btnHist">🕐 Histórico: OFF</button>
 <button onclick="abrirGoogle()">📍 Google Maps</button>
 </div>
-<button class="btn-instalar" id="btnInstalar" onclick="instalarApp()">⬇ INSTALAR APP</button>
 </div>
 <script>
 if('serviceWorker' in navigator){ navigator.serviceWorker.register('./sw.js').catch(()=>{}); }
@@ -87,7 +86,6 @@ let camadaRua=L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
 let camadaSat=L.tileLayer('https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}',{maxZoom:20});
 camadaSat.addTo(map);
 let markers={}, circulos={}, linhas={}, hist=[], histOn=false, dados=[], explorando=false, primeiraVez=true, voando=false, deferredPrompt=null;
-// INSTALAR SÓ AQUI NO PAINEL
 window.addEventListener('beforeinstallprompt',(e)=>{ e.preventDefault(); deferredPrompt=e; document.getElementById('btnInstalar').style.display='block'; });
 if(window.matchMedia('(display-mode: standalone)').matches) document.getElementById('btnInstalar').style.display='none';
 function instalarApp(){
@@ -199,7 +197,16 @@ async function carregarHist(){
 function abrirGoogle(){
   let lista = dados;
   if(lista.length===0) return;
-  window.open('https://www.google.com/maps?q='+lista[0].lat+','+lista[0].lng,'_blank');
+  let lat=lista[0].lat, lng=lista[0].lng;
+  // VOLTOU A PERGUNTAR WAZE OU MAPS - usa geo: que abre o menu do Android
+  let geoUrl='geo:'+lat+','+lng+'?q='+lat+','+lng+'(CARRO)';
+  let a=document.createElement('a');
+  a.href=geoUrl;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  // Se o celular não tiver app que abre geo:, cai pro Google Maps no navegador depois de 1s
+  setTimeout(()=>{ window.open('https://www.google.com/maps?q='+lat+','+lng,'_blank'); }, 1000);
 }
 refresh();
 setInterval(refresh,3000);
