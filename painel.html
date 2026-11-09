@@ -22,7 +22,7 @@
 .seg2{position:fixed;left:50%;transform:translateX(-50%);top:62px;z-index:1000;display:flex;background:rgba(0,0,0,.55);border:1px solid rgba(255,255,255,.25);backdrop-filter:blur(10px);border-radius:999px;padding:3px;gap:2px;white-space:nowrap}
 .seg2 button{border:0;background:transparent;color:#ccc;padding:7px 12px;border-radius:999px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap}
 .seg2 button.on{background:#a3e635;color:#000}
-.painel{position:fixed;left:0;right:0;bottom:0;z-index:1000;background:rgba(10,18,25,.55);backdrop-filter:blur(12px);border-top:1px solid rgba(255,255,255,.15);border-radius:20px 20px 0 0;padding:14px 14px 18px;color:#fff;transition:transform .4s ease;max-height:46vh;overflow-y:auto}
+.painel{position:fixed;left:0;right:0;bottom:0;z-index:1000;background:rgba(20,20,20,.25);backdrop-filter:blur(22px) saturate(1.4);-webkit-backdrop-filter:blur(22px) saturate(1.4);border-top:1px solid rgba(255,255,255,.25);border-radius:20px 20px 0 0;padding:14px 14px 18px;color:#fff;transition:transform .4s ease;max-height:46vh;overflow-y:auto;box-shadow:0 -10px 40px rgba(0,0,0,.35)}
 .painel.escondido{transform:translateY(100%)}
 .puxador{width:60px;height:5px;background:rgba(255,255,255,.4);border-radius:99px;margin:-2px auto 12px;cursor:pointer}
 .linha1{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
@@ -67,8 +67,8 @@
 </div>
 <div class="seg2">
 <button id="fTodos" class="on" onclick="setFiltro('TODOS')">👨‍👩‍👧 TODOS</button>
-<button id="fCarro" onclick="setFiltro('MEU-CARRO')">🚗 CARRO</button>
-<button id="fEsposa" onclick="setFiltro('ESPOSA')">💖 ESPOSA</button>
+<button id="fCarro" onclick="setFiltro('MEU-CARRO')">🚙 CARRO</button>
+<button id="fEsposa" onclick="setFiltro('ESPOSA')">🚗 ESPOSA</button>
 </div>
 <button class="btn-mostrar" id="btnMostrar" onclick="togglePainel()">▲ Mostrar painel</button>
 <div class="painel" id="painel">
@@ -78,8 +78,8 @@
 <button class="btn-esconder" onclick="togglePainel()" id="btnEsconder">Esconder ↓</button>
 </div>
 <div class="cards">
-<div class="card carro"><small>🚗 MEU-CARRO • BATERIA</small><div id="batCarro">--</div><small id="atualCarro">--</small></div>
-<div class="card esposa"><small>💖 ESPOSA • BATERIA</small><div id="batEsposa">--</div><small id="atualEsposa">--</small></div>
+<div class="card carro"><small>🚙 MEU-CARRO • BATERIA</small><div id="batCarro">--</div><small id="atualCarro">--</small></div>
+<div class="card esposa"><small>🚗 ESPOSA • BATERIA</small><div id="batEsposa">--</div><small id="atualEsposa">--</small></div>
 <div class="card"><small>STATUS</small><b><span class="dot"></span> <span id="qtd">2 online</span></b></div>
 <div class="card"><small>ATUALIZADO</small><b id="atualizado">--</b></div>
 </div>
@@ -87,7 +87,7 @@
 <div class="acoes">
 <button onclick="toggleHistorico()" id="btnHist">🕐 Histórico: OFF</button>
 <button onclick="abrirGoogle()">📍 Google Maps</button>
-<button onclick="voltarProCarro()">🎯 Centralizar</button>
+<button onclick="voltarProCarro()">🚘 Centralizar</button>
 </div>
 </div>
 <div class="lock">🔒 PAINEL FAMÍLIA v2.1 TRAVADO - AUTO 10s - SEM TRANSPARENTE - SEM VOLTAR</div>
@@ -152,7 +152,7 @@ function desenhar(){
   let bounds=[];
   lista.forEach(c=>{
     let isEsposa=c.device_id==='ESPOSA';
-    let emoji=isEsposa?'💖':'🚗';
+    let emoji=isEsposa?'🚗':'🚙';
     let nome=isEsposa?'ESPOSA':'CARRO';
     // SEM CÍRCULO TRANSPARENTE - só o pino sólido
     let icone=L.divIcon({html:'<div class="pino '+(isEsposa?'esposa':'')+'"><div class="onda"></div><div class="onda onda2"></div><div class="onda onda3"></div><div class="bolinha">'+emoji+'</div></div>',iconSize:[64,64],iconAnchor:[32,32],className:''});
@@ -160,7 +160,7 @@ function desenhar(){
     bounds.push([c.lat,c.lng]);
   });
   let carro=getCarro(), esposa=getEsposa();
-  document.getElementById('titulo').innerText=filtro==='TODOS'?'FAMÍLIA - '+dadosTodos.length+' pessoas':(filtro==='ESPOSA'?'💖 ESPOSA':'🚗 MEU-CARRO');
+  document.getElementById('titulo').innerText=filtro==='TODOS'?'FAMÍLIA - '+dadosTodos.length+' pessoas':(filtro==='ESPOSA'?'>🚗 ESPOSA':'🚙 MEU-CARRO');
   document.getElementById('subTitulo').innerText=filtro==='TODOS'?'Carro + Esposa • ao vivo':(filtro==='ESPOSA'?'Esposa • ao vivo':'Carro • ao vivo');
   if(carro){ document.getElementById('batCarro').innerHTML=bateriaHTML(carro.battery, carro.charging); document.getElementById('atualCarro').innerText=tempoAtras(carro.updated_at)+' • Precisão '+(carro.accuracy?Math.round(carro.accuracy)+'m':'--'); }
   if(esposa){ document.getElementById('batEsposa').innerHTML=bateriaHTML(esposa.battery, esposa.charging); document.getElementById('atualEsposa').innerText=tempoAtras(esposa.updated_at)+' • Precisão '+(esposa.accuracy?Math.round(esposa.accuracy)+'m':'--'); }
@@ -169,7 +169,7 @@ function desenhar(){
   let primeiro=lista[0];
   let acc = primeiro.accuracy;
   let txtAcc = acc ? Math.round(acc)+'m' : 'aguardando GPS...';
-  document.getElementById('precisao').innerText='Precisão: '+txtAcc+' • '+(primeiro.device_id==='ESPOSA'?'💖 ESPOSA':'🚗 CARRO')+(primeiro.charging?' • ⚡ Carregando':'');
+  document.getElementById('precisao').innerText='Precisão: '+txtAcc+' • '+(primeiro.device_id==='ESPOSA'?'>🚗 ESPOSA':'🚙 CARRO')+(primeiro.charging?' • ⚡ Carregando':'');
   if(primeiraVez){ primeiraVez=false; if(bounds.length>0) map.fitBounds(bounds,{padding:[60,60],maxZoom:17}); }
   else if(!explorando && !voando){ if(bounds.length>0) map.fitBounds(bounds,{padding:[60,60],maxZoom:17}); }
   if(histOn){
@@ -238,7 +238,7 @@ refresh();
 setInterval(refresh,10000);
 document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible') refresh(); });
 document.addEventListener('contextmenu',e=>e.preventDefault());
-console.log('%c🔒 Elias costa- NEGRET'S- AUTO 10s','color:#a3e635;font-weight:bold;font-size:16px');
+console.log('%c🔒 PAINEL FAMÍLIA TRAVADO - AUTO 10s','color:#a3e635;font-weight:bold;font-size:16px');
 </script>
 </body>
 </html>
