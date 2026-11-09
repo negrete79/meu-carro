@@ -1,7 +1,6 @@
 {
   "name": "Sertaneja Pop - Esposa",
   "short_name": "SertanejaPop Esposa",
-  "description": "Rádio Sertaneja Pop da Esposa - ao vivo 24h",
   "start_url": "./esposa.html",
   "display": "standalone",
   "background_color": "#080208",
