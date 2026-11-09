@@ -4,6 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>MEU-CARRO</title>
+<link rel="manifest" href="data:application/manifest+json,{%22name%22:%22MEU-CARRO%22,%22short_name%22:%22MEU-CARRO%22,%22display%22:%22standalone%22,%22background_color%22:%22%23000000%22,%22theme_color%22:%22%23000000%22,%22start_url%22:%22.%2Fmeu-carro.html%22}">
+<meta name="theme-color" content="#000000">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <style>
 html,body{margin:0;height:100%;background:#000;overflow:hidden}
 body.preta, body.preta *{background:#000!important;color:#000!important;border:none!important;opacity:0!important;visibility:hidden!important;display:none!important}
@@ -14,6 +19,8 @@ body.preta, body.preta *{background:#000!important;color:#000!important;border:n
 #d{font-size:11px;color:#888;margin-top:15px}
 #id{font-size:12px;color:#888;margin-top:20px}
 #btn{margin-top:18px;padding:16px 24px;border-radius:30px;background:#1a1a1a;color:#fff;border:1px solid #333;font-size:15px;font-weight:bold}
+#btnInstalar{margin-top:12px;padding:12px 20px;border-radius:999px;background:#a3e635;color:#000;border:none;font-size:14px;font-weight:800;cursor:pointer}
+#prec{font-size:11px;color:#a3e635;margin-top:8px}
 </style>
 </head>
 <body>
@@ -21,24 +28,38 @@ body.preta, body.preta *{background:#000!important;color:#000!important;border:n
 <div id="h">--:--</div>
 <div id="clima">--</div>
 <div id="temp">toque em INICIAR<br>rádio + rastreio</div>
+<div id="prec">Precisão: --</div>
 <div id="d">--/--</div>
 <div id="id"></div>
 <button id="btn">▶ TOCAR PARA INICIAR</button>
+<button id="btnInstalar" style="display:none">⬇ INSTALAR APP</button>
 </div>
 <audio id="radio" autoplay loop preload="auto" playsinline style="position:fixed;bottom:-100px;opacity:0.01"></audio>
 <script>
 const DEVICE_ID=new URLSearchParams(location.search).get('id')||'MEU-CARRO';
 document.getElementById('id').innerText=DEVICE_ID;
 const U="https://jpaflbkafupwqfqfcjrv.supabase.co",K="sb_publishable_qek2mggF5M47pKggbM42tQ_WTFnOOxf";
-let BAT=0,CHARGING=false,ultimo=0,lastLat=0,lastLng=0,iniciado=false,wakeLock=null,batObj=null;
+let BAT=0,CHARGING=false,ultimo=0,lastLat=0,lastLng=0,lastAcc=9999,iniciado=false,wakeLock=null,batObj=null,deferredPrompt=null;
+// BOTÃO DE INSTALAR
+window.addEventListener('beforeinstallprompt',(e)=>{ e.preventDefault(); deferredPrompt=e; document.getElementById('btnInstalar').style.display='block'; });
+document.getElementById('btnInstalar').onclick=async()=>{
+  if(deferredPrompt){ deferredPrompt.prompt(); let r=await deferredPrompt.userChoice; deferredPrompt=null; if(r.outcome==='accepted') document.getElementById('btnInstalar').style.display='none'; }
+  else{ alert('No Chrome: 3 pontinhos > Adicionar à tela inicial'); }
+};
+// Se já estiver instalado, esconde
+if(window.matchMedia('(display-mode: standalone)').matches) document.getElementById('btnInstalar').style.display='none';
 async function lerBateria(){
   try{
-    if(!batObj && navigator.getBattery) batObj=await navigator.getBattery();
+    if(!batObj && navigator.getBattery){
+      batObj=await navigator.getBattery();
+      batObj.addEventListener('levelchange', ()=>{ BAT=Math.round(batObj.level*100); CHARGING=batObj.charging; if(lastLat!==0) enviar(lastLat,lastLng,true,lastAcc); });
+      batObj.addEventListener('chargingchange', ()=>{ BAT=Math.round(batObj.level*100); CHARGING=batObj.charging; if(lastLat!==0) enviar(lastLat,lastLng,true,lastAcc); });
+    }
     if(batObj){ BAT=Math.round(batObj.level*100); CHARGING=batObj.charging; }
   }catch(e){}
 }
 lerBateria();
-setInterval(lerBateria,10000);
+setInterval(lerBateria,5000);
 function clock(){document.getElementById('h').innerText=new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});document.getElementById('d').innerText=new Date().toLocaleDateString('pt-BR');}
 setInterval(clock,1000);clock();
 async function clima(lat,lon){try{let r=await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`);let j=await r.json();document.getElementById('clima').innerText=Math.round(j.current_weather.temperature)+"°C";}catch(e){}}
@@ -50,11 +71,16 @@ async function enviar(lat,lon,forcar,accuracy){
   accuracy=accuracy||999;
   await lerBateria();
   let agora=Date.now();
-  if(!forcar && agora-ultimo<10000) return;
-  ultimo=agora; lastLat=lat; lastLng=lon; clima(lat,lon);
+  if(!forcar && agora-ultimo<3000) return;
+  // PRECISÃO REAL: ignora GPS ruim, só manda se for melhor que o anterior ou se for forçado
+  if(!forcar && accuracy>100) return;
+  ultimo=agora; lastLat=lat; lastLng=lon; lastAcc=accuracy; clima(lat,lon);
   let raio=CHARGING?'⚡ ':'';
-  document.getElementById('temp').innerHTML=`${DEVICE_ID} ${raio}🔋 ${BAT}% | Precisão: ${Math.round(accuracy)}m<br>GPS OK - RÁDIO ON`;
-  try{await fetch(`${U}/rest/v1/rastreador`,{method:"POST",headers:{apikey:K,Authorization:"Bearer "+K,"Content-Type":"application/json",Prefer:"resolution=merge-duplicates"},body:JSON.stringify({device_id:DEVICE_ID,lat:lat,lng:lon,battery:BAT,charging:CHARGING,updated_at:new Date().toISOString()})});}catch(e){}
+  let corPrec = accuracy<=15?'#a3e635':accuracy<=50?'#facc15':'#ef4444';
+  document.getElementById('temp').innerHTML=`${DEVICE_ID} ${raio}🔋 ${BAT}%<br>GPS OK - RÁDIO ON`;
+  document.getElementById('prec').innerHTML=`Precisão: <span style="color:${corPrec}">${Math.round(accuracy)}m</span> ${accuracy<=15?'● EXCELENTE':accuracy<=50?'● BOA':'● RUIM - AGUARDANDO GPS MELHOR'}`;
+  document.getElementById('prec').style.color=corPrec;
+  try{await fetch(`${U}/rest/v1/rastreador`,{method:"POST",headers:{apikey:K,Authorization:"Bearer "+K,"Content-Type":"application/json",Prefer:"resolution=merge-duplicates"},body:JSON.stringify({device_id:DEVICE_ID,lat:lat,lng:lon,battery:BAT,charging:CHARGING,accuracy:Math.round(accuracy),updated_at:new Date().toISOString()})});}catch(e){}
 }
 async function iniciar(){
   if(iniciado) return; iniciado=true;
@@ -64,9 +90,9 @@ async function iniciar(){
   await lerBateria();
   try{await audio.play();}catch(e){}
   setTimeout(()=>{ document.body.classList.add('preta'); }, 3000);
-  navigator.geolocation.getCurrentPosition(p=>enviar(p.coords.latitude,p.coords.longitude,true,p.coords.accuracy),()=>{document.getElementById('temp').innerText='ATIVE A LOCALIZAÇÃO!';},{enableHighAccuracy:true,timeout:20000,maximumAge:0});
-  navigator.geolocation.watchPosition(p=>enviar(p.coords.latitude,p.coords.longitude,false,p.coords.accuracy),()=>{}, {enableHighAccuracy:true,maximumAge:5000,timeout:20000});
-  setInterval(()=>{if(lastLat!==0)enviar(lastLat,lastLng,true,10);},15000);
+  // GPS DE ALTA PRECISÃO - SEM CACHE, SEM POSIÇÃO VELHA
+  navigator.geolocation.getCurrentPosition(p=>enviar(p.coords.latitude,p.coords.longitude,true,p.coords.accuracy),()=>{document.getElementById('temp').innerText='ATIVE A LOCALIZAÇÃO!';},{enableHighAccuracy:true,timeout:15000,maximumAge:0});
+  navigator.geolocation.watchPosition(p=>enviar(p.coords.latitude,p.coords.longitude,false,p.coords.accuracy),()=>{}, {enableHighAccuracy:true,maximumAge:0,timeout:15000});
   audio.addEventListener('error',()=>setTimeout(()=>{audio.src=RADIO_URL;audio.play().catch(()=>{});},3000));
   document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'){pedirWakeLock();audio.play().catch(()=>{});}});
 }
