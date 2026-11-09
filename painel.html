@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>PAINEL FAMÍLIA - CARRO + ESPOSA 🔒</title>
+<link rel="manifest" href="./manifest-painel.json">
+<meta name="theme-color" content="#000000">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+*{box-sizing:border-box} html,body{margin:0;height:100%;font-family:system-ui,-apple-system,sans-serif;background:#000;overflow:hidden}
+#map{position:fixed;inset:0;z-index:1}
+.topo{position:fixed;top:12px;left:10px;right:10px;z-index:1000;display:flex;justify-content:space-between;align-items:center;gap:6px;pointer-events:none;flex-wrap:wrap}
+.topo > *{pointer-events:auto;flex-shrink:0}
+.btn-topo{background:rgba(0,0,0,.55);color:#fff;border:1px solid rgba(255,255,255,.25);backdrop-filter:blur(10px);padding:9px 11px;border-radius:999px;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap}
+.btn-topo.atualizando{background:#a3e635;color:#000;border-color:#a3e635}
+.btn-instalar-topo{background:#a3e635;color:#000;border:none;padding:9px 11px;border-radius:999px;font-size:13px;font-weight:800;cursor:pointer;white-space:nowrap}
+.seg{display:flex;background:rgba(0,0,0,.55);border:1px solid rgba(255,255,255,.25);backdrop-filter:blur(10px);border-radius:999px;padding:3px;gap:2px;white-space:nowrap}
+.seg button{border:0;background:transparent;color:#ccc;padding:7px 10px;border-radius:999px;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap}
+.seg button.on{background:#fff;color:#000}
+.seg2{position:fixed;left:50%;transform:translateX(-50%);top:62px;z-index:1000;display:flex;background:rgba(0,0,0,.55);border:1px solid rgba(255,255,255,.25);backdrop-filter:blur(10px);border-radius:999px;padding:3px;gap:2px;white-space:nowrap}
+.seg2 button{border:0;background:transparent;color:#ccc;padding:7px 12px;border-radius:999px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap}
+.seg2 button.on{background:#a3e635;color:#000}
+.btn-carro{position:fixed;right:12px;top:112px;z-index:1000;width:54px;height:54px;border-radius:50%;background:rgba(0,0,0,.45);border:1px solid rgba(255,255,255,.25);backdrop-filter:blur(8px);font-size:28px;cursor:pointer;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transform:scale(.8);transition:opacity .4s,transform .4s}
+.btn-carro.mostrar{opacity:.65;pointer-events:auto;transform:scale(1)}
+.painel{position:fixed;left:0;right:0;bottom:0;z-index:1000;background:rgba(10,18,25,.55);backdrop-filter:blur(12px);border-top:1px solid rgba(255,255,255,.15);border-radius:20px 20px 0 0;padding:14px 14px 18px;color:#fff;transition:transform .4s ease;max-height:46vh;overflow-y:auto}
+.painel.escondido{transform:translateY(100%)}
+.puxador{width:60px;height:5px;background:rgba(255,255,255,.4);border-radius:99px;margin:-2px auto 12px;cursor:pointer}
+.linha1{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.linha1 h2{margin:0;font-size:22px;text-shadow:0 1px 4px rgba(0,0,0,.8)}
+.linha1 p{margin:2px 0 0;color:#d0dbe4;font-size:13px;text-shadow:0 1px 3px rgba(0,0,0,.8)}
+.btn-esconder{background:rgba(0,0,0,.35);color:#fff;border:1px solid rgba(255,255,255,.25);padding:12px 18px;border-radius:999px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap}
+.cards{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px}
+.card{background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.15);border-radius:14px;padding:10px}
+.card.carro{border-top:3px solid #a3e635}
+.card.esposa{border-top:3px solid #ff2d55}
+.card small{color:#d0dbe4;font-size:11px;letter-spacing:.5px}
+.card b{display:block;font-size:16px;margin-top:4px}
+.dot{width:10px;height:10px;border-radius:50%;background:#a3e635;display:inline-block;box-shadow:0 0 8px #a3e635}
+.dot.rosa{background:#ff2d55;box-shadow:0 0 8px #ff2d55}
+.precisao{text-align:center;color:#e2e8f0;font-size:13px;margin:12px 0 8px;text-shadow:0 1px 3px rgba(0,0,0,.9)}
+.acoes{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.acoes button{background:rgba(0,0,0,.35);color:#fff;border:1px solid rgba(255,255,255,.2);padding:12px;border-radius:999px;font-size:13px;font-weight:600;cursor:pointer}
+.btn-mostrar{position:fixed;left:50%;transform:translateX(-50%) translateY(80px);bottom:16px;z-index:1001;background:rgba(0,0,0,.6);color:#fff;border:1px solid rgba(255,255,255,.3);backdrop-filter:blur(10px);padding:10px 18px;border-radius:999px;font-size:13px;font-weight:700;cursor:pointer;transition:transform .4s ease;white-space:nowrap}
+.btn-mostrar.visivel{transform:translateX(-50%) translateY(0)}
+.pino{width:64px;height:64px;position:relative;display:flex;align-items:center;justify-content:center}
+.pino .onda{position:absolute;inset:0;border-radius:50%;border:2px solid rgba(163,230,53,.9);animation:onda 2s ease-out infinite}
+.pino.esposa .onda{border-color:rgba(255,45,85,.9)}
+.pino .onda2{animation-delay:1s;border-color:rgba(255,255,255,.7)}
+.pino .onda3{animation-delay:1.5s;border-color:rgba(163,230,53,.5)}
+@keyframes onda{0%{transform:scale(.6);opacity:1}100%{transform:scale(1.9);opacity:0}}
+.pino .bolinha{width:44px;height:44px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.45);backdrop-filter:blur(2px);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:26px;position:relative;z-index:2;box-shadow:0 2px 8px rgba(0,0,0,.4)}
+.bat-wrap{display:flex;align-items:center;gap:6px;margin-top:4px}
+.bat-corpo{width:42px;height:22px;border:1.5px solid rgba(255,255,255,.85);border-radius:5px;padding:2px;position:relative;flex-shrink:0;background:rgba(0,0,0,.3)}
+.bat-fill{height:100%;border-radius:2px;transition:width .5s ease}
+.bat-ponta{width:3px;height:10px;background:rgba(255,255,255,.85);border-radius:0 2px 2px 0;flex-shrink:0}
+.bat-pct{font-size:16px;font-weight:800;line-height:1}
+.bat-raio{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:13px;color:#000;font-weight:900;z-index:2;text-shadow:0 0 2px #fff}
+.lock{position:fixed;bottom:4px;right:6px;z-index:1002;font-size:9px;opacity:.35;color:#fff;pointer-events:none}
+</style>
+</head>
+<body>
+<div id="map"></div>
+<div class="topo">
+<button class="btn-topo" onclick="atualizarAgora()" id="btnAtualizar">↻ Atualizar</button>
+<button class="btn-instalar-topo" id="btnInstalar" onclick="instalarApp()">⬇ Instalar</button>
+<div class="seg"><button id="btnRua" onclick="setTipo('rua')">Rua</button><button id="btnSat" onclick="setTipo('sat')" class="on">Satélite</button></div>
+</div>
+<div class="seg2">
+<button id="fTodos" class="on" onclick="setFiltro('TODOS')">👨‍👩‍👧 TODOS</button>
+<button id="fCarro" onclick="setFiltro('MEU-CARRO')">🚗 CARRO</button>
+<button id="fEsposa" onclick="setFiltro('ESPOSA')">💖 ESPOSA</button>
+</div>
+<button class="btn-carro" id="btnCarro" onclick="voltarProCarro()">🚗</button>
+<button class="btn-mostrar" id="btnMostrar" onclick="togglePainel()">▲ Mostrar painel</button>
+<div class="painel" id="painel">
+<div class="puxador" onclick="togglePainel()"></div>
+<div class="linha1">
+<div><h2 id="titulo">FAMÍLIA - 2 pessoas</h2><p id="subTitulo">Carro + Esposa • ao vivo</p></div>
+<button class="btn-esconder" onclick="togglePainel()" id="btnEsconder">Esconder ↓</button>
+</div>
+<div class="cards">
+<div class="card carro"><small>🚗 MEU-CARRO • BATERIA</small><div id="batCarro">--</div><small id="atualCarro">--</small></div>
+<div class="card esposa"><small>💖 ESPOSA • BATERIA</small><div id="batEsposa">--</div><small id="atualEsposa">--</small></div>
+<div class="card"><small>STATUS</small><b><span class="dot"></span> <span id="qtd">2 online</span></b></div>
+<div class="card"><small>ATUALIZADO</small><b id="atualizado">--</b></div>
+</div>
+<div class="precisao" id="precisao">Precisão: aguardando GPS...</div>
+<div class="acoes">
+<button onclick="toggleHistorico()" id="btnHist">🕐 Histórico: OFF</button>
+<button onclick="abrirGoogle()">📍 Google Maps</button>
+<button onclick="voltarProCarro()">🎯 Centralizar</button>
+</div>
+</div>
+<div class="lock">🔒 PAINEL FAMÍLIA v2 TRAVADO</div>
+<script>
+if('serviceWorker' in navigator){ navigator.serviceWorker.register('./sw.js').catch(()=>{}); }
+const U="https://jpaflbkafupwqfqfcjrv.supabase.co", K="sb_publishable_qek2mggF5M47pKggbM42tQ_WTFnOOxf";
+let map=L.map('map',{zoomControl:false}).setView([-20.38,-43.5],15);
+let camadaRua=L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19});
+let camadaSat=L.tileLayer('https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}',{maxZoom:20});
+camadaSat.addTo(map);
+let markers={}, circulos={}, linhas={}, hist=[], histOn=false, dados=[], dadosTodos=[], explorando=false, primeiraVez=true, voando=false, deferredPrompt=null, filtro='TODOS';
+window.addEventListener('beforeinstallprompt',(e)=>{ e.preventDefault(); deferredPrompt=e; document.getElementById('btnInstalar').style.display='block'; });
+if(window.matchMedia('(display-mode: standalone)').matches) document.getElementById('btnInstalar').style.display='none';
+function instalarApp(){
+  if(deferredPrompt){ deferredPrompt.prompt(); deferredPrompt.userChoice.then(r=>{ if(r.outcome==='accepted') document.getElementById('btnInstalar').style.display='none'; deferredPrompt=null; }); }
+  else{ alert('No Chrome: 3 pontinhos > Adicionar à tela inicial > Instalar'); }
+}
+function setFiltro(f){
+  filtro=f;
+  document.getElementById('fTodos').className=f==='TODOS'?'on':'';
+  document.getElementById('fCarro').className=f==='MEU-CARRO'?'on':'';
+  document.getElementById('fEsposa').className=f==='ESPOSA'?'on':'';
+  if(f==='TODOS') dados=dadosTodos.slice();
+  else dados=dadosTodos.filter(d=>d.device_id===f);
+  desenhar(); voltarProCarro();
+}
+function mostrarBtnCarro(mostrar){ document.getElementById('btnCarro').classList.toggle('mostrar', mostrar); }
+map.on('movestart', ()=>{ if(!primeiraVez && !voando){ explorando=true; mostrarBtnCarro(true); } });
+map.on('zoomstart', ()=>{ if(!primeiraVez && !voando){ explorando=true; mostrarBtnCarro(true); } });
+map.on('moveend', ()=>{ if(voando){ voando=false; explorando=false; mostrarBtnCarro(false); } });
+function setTipo(t){
+  if(t==='rua'){ map.removeLayer(camadaSat); camadaRua.addTo(map); document.getElementById('btnRua').className='on'; document.getElementById('btnSat').className=''; }
+  else{ map.removeLayer(camadaRua); camadaSat.addTo(map); document.getElementById('btnSat').className='on'; document.getElementById('btnRua').className=''; }
+}
+function togglePainel(){
+  let p=document.getElementById('painel');
+  let esc=p.classList.toggle('escondido');
+  document.getElementById('btnEsconder').innerText=esc?'Mostrar ↑':'Esconder ↓';
+  document.getElementById('btnMostrar').classList.toggle('visivel', esc);
+}
+function tempoAtras(iso){
+  if(!iso) return '--';
+  let s=Math.floor((Date.now()-new Date(iso).getTime())/1000);
+  if(s<3) return 'agora';
+  if(s<60) return 'há '+s+'s';
+  let m=Math.floor(s/60); if(m<60) return 'há '+m+'min';
+  return 'há '+Math.floor(m/60)+'h';
+}
+function bateriaHTML(pct, charging){
+  pct = pct || 0;
+  let cor = pct > 50 ? '#a3e635' : pct > 20 ? '#facc15' : '#ef4444';
+  let raio = charging ? '<div class="bat-raio">⚡</div>' : '';
+  return '<div class="bat-wrap"><div class="bat-corpo"><div class="bat-fill" style="width:'+pct+'%;background:'+cor+'"></div>'+raio+'</div><div class="bat-ponta"></div><span class="bat-pct">'+pct+'%</span></div>';
+}
+function txtBateria(c){ return (c.charging?'⚡ ':'')+(c.battery||0)+'%'; }
+function getCarro(){ return dadosTodos.find(d=>d.device_id==='MEU-CARRO'); }
+function getEsposa(){ return dadosTodos.find(d=>d.device_id==='ESPOSA'); }
+function desenhar(){
+  for(let k in markers){ map.removeLayer(markers[k]); delete markers[k]; }
+  for(let k in circulos){ map.removeLayer(circulos[k]); delete circulos[k]; }
+  for(let k in linhas){ map.removeLayer(linhas[k]); delete linhas[k]; }
+  let lista = dados;
+  if(lista.length===0) return;
+  let bounds=[];
+  lista.forEach(c=>{
+    let isEsposa=c.device_id==='ESPOSA';
+    let cor=isEsposa?'#ff2d55':'#a3e635';
+    let emoji=isEsposa?'💖':'🚗';
+    let nome=isEsposa?'ESPOSA':'CARRO';
+    if(c.accuracy && c.accuracy<200){
+      circulos[c.device_id]=L.circle([c.lat,c.lng],{radius:c.accuracy,color:cor,fillColor:cor,fillOpacity:0.15,weight:1}).addTo(map);
+    }
+    let icone=L.divIcon({html:'<div class="pino '+(isEsposa?'esposa':'')+'"><div class="onda"></div><div class="onda onda2"></div><div class="onda onda3"></div><div class="bolinha">'+emoji+'</div></div>',iconSize:[64,64],iconAnchor:[32,32],className:''});
+    markers[c.device_id]=L.marker([c.lat,c.lng],{icon:icone}).addTo(map).bindPopup('<b>'+nome+'</b><br>'+txtBateria(c)+'<br>'+tempoAtras(c.updated_at));
+    bounds.push([c.lat,c.lng]);
+  });
+  let carro=getCarro(), esposa=getEsposa();
+  document.getElementById('titulo').innerText=filtro==='TODOS'?'FAMÍLIA - '+dadosTodos.length+' pessoas':(filtro==='ESPOSA'?'💖 ESPOSA':'🚗 MEU-CARRO');
+  document.getElementById('subTitulo').innerText=filtro==='TODOS'?'Carro + Esposa • ao vivo':(filtro==='ESPOSA'?'Esposa • ao vivo':'Carro • ao vivo');
+  if(carro){ document.getElementById('batCarro').innerHTML=bateriaHTML(carro.battery, carro.charging); document.getElementById('atualCarro').innerText=tempoAtras(carro.updated_at)+' • Precisão '+(carro.accuracy?Math.round(carro.accuracy)+'m':'--'); }
+  if(esposa){ document.getElementById('batEsposa').innerHTML=bateriaHTML(esposa.battery, esposa.charging); document.getElementById('atualEsposa').innerText=tempoAtras(esposa.updated_at)+' • Precisão '+(esposa.accuracy?Math.round(esposa.accuracy)+'m':'--'); }
+  document.getElementById('atualizado').innerText=tempoAtras(lista[0].updated_at);
+  document.getElementById('qtd').innerText=dadosTodos.length+' online';
+  let primeiro=lista[0];
+  let acc = primeiro.accuracy;
+  let txtAcc = acc ? Math.round(acc)+'m' : 'aguardando GPS...';
+  document.getElementById('precisao').innerText='Precisão: '+txtAcc+' • '+(primeiro.device_id==='ESPOSA'?'💖 ESPOSA':'🚗 CARRO')+(primeiro.charging?' • ⚡ Carregando':'');
+  if(primeiraVez){ primeiraVez=false; if(bounds.length>0) map.fitBounds(bounds,{padding:[60,60],maxZoom:17}); }
+  else if(!explorando && !voando){ if(bounds.length>0) map.fitBounds(bounds,{padding:[60,60],maxZoom:17}); }
+  if(histOn){
+    // Linha de histórico separada por cor
+    let histCarro=hist.filter(h=>h.device_id==='MEU-CARRO');
+    let histEsposa=hist.filter(h=>h.device_id==='ESPOSA');
+    if(filtro!=='ESPOSA' && histCarro.length>1){ let pts=histCarro.map(h=>[h.lat,h.lng]); linhas['hCarro']=L.polyline(pts,{color:'#a3e635',weight:4}).addTo(map); }
+    if(filtro!=='MEU-CARRO' && histEsposa.length>1){ let pts=histEsposa.map(h=>[h.lat,h.lng]); linhas['hEsposa']=L.polyline(pts,{color:'#ff2d55',weight:4,dashArray:'6 6'}).addTo(map); }
+  }
+}
+async function refresh(){
+  try{
+    let r=await fetch(U+'/rest/v1/rastreador?select=*&order=updated_at.desc&limit=50',{headers:{apikey:K,Authorization:'Bearer '+K},cache:'no-store'});
+    let j=await r.json();
+    let mapa={};
+    j.forEach(c=>{ if(!mapa[c.device_id]) mapa[c.device_id]=c; });
+    dadosTodos=Object.values(mapa).sort((a,b)=>new Date(b.updated_at)-new Date(a.updated_at));
+    // 🔒 CORRIGIDO: NÃO apaga mais a esposa - antes tinha dados=[dados[0]] aqui
+    if(filtro==='TODOS') dados=dadosTodos.slice();
+    else dados=dadosTodos.filter(d=>d.device_id===filtro);
+    desenhar();
+  }catch(e){}
+}
+setInterval(()=>{ if(dadosTodos.length>0) document.getElementById('atualizado').innerText=tempoAtras(dadosTodos[0].updated_at); },1000);
+function atualizarAgora(){
+  let b=document.getElementById('btnAtualizar');
+  b.classList.add('atualizando');
+  b.innerText='⟳ Atualizando...';
+  refresh().then(()=>{ b.innerText='✓ Atualizado agora'; setTimeout(()=>{ b.classList.remove('atualizando'); b.innerText='↻ Atualizar'; },1500); });
+  if(!explorando) voltarProCarro();
+}
+function voltarProCarro(){
+  let lista = dados;
+  if(lista.length===0) return;
+  explorando=false; mostrarBtnCarro(false);
+  primeiraVez=false;
+  voando=true;
+  if(lista.length===1){ map.flyTo([lista[0].lat,lista[0].lng],17,{duration:1.5}); }
+  else { map.flyToBounds(lista.map(c=>[c.lat,c.lng]),{padding:[60,60],maxZoom:16,duration:1.5}); }
+  setTimeout(()=>{ voando=false; if(!explorando) mostrarBtnCarro(false); },2000);
+}
+function toggleHistorico(){
+  histOn=!histOn;
+  document.getElementById('btnHist').innerText=histOn?'🕐 Histórico: ON':'🕐 Histórico: OFF';
+  if(histOn) carregarHist(); else desenhar();
+}
+async function carregarHist(){
+  try{
+    let r=await fetch(U+'/rest/v1/rastreador?select=*&order=updated_at.desc&limit=400',{headers:{apikey:K,Authorization:'Bearer '+K},cache:'no-store'});
+    hist=await r.json(); desenhar();
+  }catch(e){}
+}
+function abrirGoogle(){
+  let lista = dados;
+  if(lista.length===0) return;
+  let lat=lista[0].lat, lng=lista[0].lng;
+  let nome=lista[0].device_id==='ESPOSA'?'ESPOSA':'CARRO';
+  let geoUrl='geo:'+lat+','+lng+'?q='+lat+','+lng+'('+nome+')';
+  let a=document.createElement('a');
+  a.href=geoUrl;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(()=>{ window.open('https://www.google.com/maps?q='+lat+','+lng,'_blank'); }, 1000);
+}
+refresh();
+setInterval(refresh,3000);
+/* 🔒 TRAVA */
+document.addEventListener('contextmenu',e=>e.preventDefault());
+console.log('%c🔒 PAINEL FAMÍLIA TRAVADO','color:#a3e635;font-weight:bold;font-size:16px');
+</script>
+</body>
+  </html>
