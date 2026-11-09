@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>FROTA</title>
+<link rel="manifest" href="data:application/manifest+json,{%22name%22:%22CARRO%22,%22short_name%22:%22CARRO%22,%22display%22:%22standalone%22,%22background_color%22:%22%23000000%22,%22theme_color%22:%22%23000000%22,%22start_url%22:%22.%2Fpainel.html%22}">
+<meta name="theme-color" content="#000000">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <style>
@@ -42,13 +44,13 @@
 .pino-carro .onda3{animation-delay:1.5s;border-color:rgba(163,230,53,.5)}
 @keyframes onda{0%{transform:scale(.6);opacity:1}100%{transform:scale(1.9);opacity:0}}
 .pino-carro .bolinha{width:44px;height:44px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.45);backdrop-filter:blur(2px);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:26px;position:relative;z-index:2;box-shadow:0 2px 8px rgba(0,0,0,.4)}
-/* BATERIA IGUAL DO CELULAR */
 .bat-wrap{display:flex;align-items:center;gap:6px;margin-top:4px}
 .bat-corpo{width:42px;height:22px;border:1.5px solid rgba(255,255,255,.85);border-radius:5px;padding:2px;position:relative;flex-shrink:0;background:rgba(0,0,0,.3)}
 .bat-fill{height:100%;border-radius:2px;transition:width .5s ease}
 .bat-ponta{width:3px;height:10px;background:rgba(255,255,255,.85);border-radius:0 2px 2px 0;flex-shrink:0}
 .bat-pct{font-size:16px;font-weight:800;line-height:1}
 .bat-raio{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:13px;color:#000;font-weight:900;z-index:2;text-shadow:0 0 2px #fff}
+#btnInstalarPainel{position:fixed;left:12px;bottom:12px;z-index:1002;background:#a3e635;color:#000;border:none;padding:10px 14px;border-radius:999px;font-size:13px;font-weight:800;cursor:pointer;display:none}
 </style>
 </head>
 <body>
@@ -59,6 +61,7 @@
 </div>
 <button class="btn-carro" id="btnCarro" onclick="voltarProCarro()">🚗</button>
 <button class="btn-mostrar" id="btnMostrar" onclick="togglePainel()">▲ Mostrar painel</button>
+<button id="btnInstalarPainel">⬇ Instalar App</button>
 <div class="painel" id="painel">
 <div class="puxador" onclick="togglePainel()"></div>
 <div class="linha1">
@@ -82,7 +85,13 @@ let map=L.map('map',{zoomControl:false}).setView([-20.38,-43.5],15);
 let camadaRua=L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19});
 let camadaSat=L.tileLayer('https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}',{maxZoom:20});
 camadaSat.addTo(map);
-let markers={}, linhas={}, hist=[], histOn=false, dados=[], explorando=false, primeiraVez=true, voando=false;
+let markers={}, linhas={}, hist=[], histOn=false, dados=[], explorando=false, primeiraVez=true, voando=false, deferredPrompt=null;
+window.addEventListener('beforeinstallprompt',(e)=>{ e.preventDefault(); deferredPrompt=e; document.getElementById('btnInstalarPainel').style.display='block'; });
+document.getElementById('btnInstalarPainel').onclick=async()=>{
+  if(deferredPrompt){ deferredPrompt.prompt(); let r=await deferredPrompt.userChoice; deferredPrompt=null; if(r.outcome==='accepted') document.getElementById('btnInstalarPainel').style.display='none'; }
+  else alert('No Chrome: 3 pontinhos > Adicionar à tela inicial');
+};
+if(window.matchMedia('(display-mode: standalone)').matches) document.getElementById('btnInstalarPainel').style.display='none';
 function mostrarBtnCarro(mostrar){ document.getElementById('btnCarro').classList.toggle('mostrar', mostrar); }
 map.on('movestart', ()=>{ if(!primeiraVez && !voando){ explorando=true; mostrarBtnCarro(true); } });
 map.on('zoomstart', ()=>{ if(!primeiraVez && !voando){ explorando=true; mostrarBtnCarro(true); } });
@@ -105,7 +114,6 @@ function tempoAtras(iso){
   let m=Math.floor(s/60); if(m<60) return 'há '+m+'min';
   return 'há '+Math.floor(m/60)+'h';
 }
-// BATERIA IGUAL DO CELULAR - BARRINHA QUE ENCHE
 function bateriaHTML(pct, charging){
   pct = pct || 0;
   let cor = pct > 50 ? '#a3e635' : pct > 20 ? '#facc15' : '#ef4444';
@@ -132,7 +140,9 @@ function desenhar(){
   document.getElementById('bateria').innerHTML=bateriaHTML(media, algumCarregando);
   document.getElementById('atualizado').innerText=tempoAtras(primeiro.updated_at);
   document.getElementById('qtd').innerText='1 carro';
-  document.getElementById('precisao').innerText='Precisão: '+(primeiro.accuracy?Math.round(primeiro.accuracy)+'m':'aguardando GPS...')+' • CARRO'+(primeiro.charging?' • ⚡ Carregando':'');
+  let acc = primeiro.accuracy || 999;
+  let txtAcc = acc<900 ? Math.round(acc)+'m'+(acc<=15?' ● Excelente':acc<=50?' ● Boa':' ● Ruim') : 'aguardando GPS...';
+  document.getElementById('precisao').innerText='Precisão: '+txtAcc+' • CARRO'+(primeiro.charging?' • ⚡ Carregando':'');
   if(primeiraVez){ primeiraVez=false; if(bounds.length>0) map.fitBounds(bounds,{padding:[60,60],maxZoom:17}); }
   else if(!explorando && !voando){ if(bounds.length>0) map.fitBounds(bounds,{padding:[60,60],maxZoom:17}); }
   if(histOn && lista.length===1){
