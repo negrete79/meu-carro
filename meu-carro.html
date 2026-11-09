@@ -4,23 +4,17 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>MEU-CARRO</title>
-<link rel="manifest" href="./manifest.json">
-<meta name="theme-color" content="#000000">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-capable" content="yes">
 <style>
 html,body{margin:0;height:100%;background:#000;overflow:hidden}
 body.preta, body.preta *{background:#000!important;color:#000!important;border:none!important;opacity:0!important;visibility:hidden!important;display:none!important}
-#tela{height:100%;display:flex;align-items:center;justify-content:center;flex-direction:column;font-family:monospace;background:#000;padding:20px;text-align:center}
+#tela{height:100%;display:flex;align-items:center;justify-content:center;flex-direction:column;font-family:monospace;background:#000}
 #h{font-size:70px;font-weight:bold;color:#fff}
 #clima{font-size:34px;margin-top:10px;color:#ccc}
 #temp{font-size:12px;color:#888;margin-top:5px;text-align:center;line-height:1.6}
 #d{font-size:11px;color:#888;margin-top:15px}
 #id{font-size:12px;color:#888;margin-top:20px}
 #btn{margin-top:18px;padding:16px 24px;border-radius:30px;background:#1a1a1a;color:#fff;border:1px solid #333;font-size:15px;font-weight:bold}
-#btnInstalar{margin-top:12px;padding:14px 22px;border-radius:999px;background:#a3e635;color:#000;border:none;font-size:15px;font-weight:800;cursor:pointer}
-#prec{font-size:12px;margin-top:8px}
-#aviso{font-size:11px;color:#facc15;margin-top:8px;max-width:280px;line-height:1.5}
+#prec{font-size:11px;color:#a3e635;margin-top:8px}
 </style>
 </head>
 <body>
@@ -29,26 +23,16 @@ body.preta, body.preta *{background:#000!important;color:#000!important;border:n
 <div id="clima">--</div>
 <div id="temp">toque em INICIAR<br>rádio + rastreio</div>
 <div id="prec">Precisão: --</div>
-<div id="aviso"></div>
 <div id="d">--/--</div>
 <div id="id"></div>
 <button id="btn">▶ TOCAR PARA INICIAR</button>
-<button id="btnInstalar">⬇ INSTALAR APP</button>
-<div id="aviso2" style="font-size:11px;color:#666;margin-top:10px;line-height:1.5">Se o botão não instalar:<br>Chrome > 3 pontinhos > Adicionar à tela inicial</div>
 </div>
 <audio id="radio" autoplay loop preload="auto" playsinline style="position:fixed;bottom:-100px;opacity:0.01"></audio>
 <script>
-if('serviceWorker' in navigator){ navigator.serviceWorker.register('./sw.js').catch(()=>{}); }
 const DEVICE_ID=new URLSearchParams(location.search).get('id')||'MEU-CARRO';
 document.getElementById('id').innerText=DEVICE_ID;
 const U="https://jpaflbkafupwqfqfcjrv.supabase.co",K="sb_publishable_qek2mggF5M47pKggbM42tQ_WTFnOOxf";
-let BAT=0,CHARGING=false,ultimo=0,lastLat=0,lastLng=0,lastAcc=9999,iniciado=false,wakeLock=null,batObj=null,deferredPrompt=null;
-window.addEventListener('beforeinstallprompt',(e)=>{ e.preventDefault(); deferredPrompt=e; });
-document.getElementById('btnInstalar').onclick=async()=>{
-  if(deferredPrompt){ deferredPrompt.prompt(); let r=await deferredPrompt.userChoice; deferredPrompt=null; if(r.outcome==='accepted') document.getElementById('btnInstalar').style.display='none'; }
-  else{ alert('No Chrome: 3 pontinhos > Adicionar à tela inicial > Instalar'); }
-};
-if(window.matchMedia('(display-mode: standalone)').matches) document.getElementById('btnInstalar').style.display='none';
+let BAT=0,CHARGING=false,ultimo=0,lastLat=0,lastLng=0,lastAcc=999,iniciado=false,wakeLock=null,batObj=null;
 async function lerBateria(){
   try{
     if(!batObj && navigator.getBattery){
@@ -72,18 +56,11 @@ async function enviar(lat,lon,forcar,accuracy){
   await lerBateria();
   let agora=Date.now();
   if(!forcar && agora-ultimo<3000) return;
-  // TRAVA DE PRECISÃO - SÓ ACEITA GPS BOM, JOGA FORA O ERRADO
-  if(accuracy>50){
-    document.getElementById('prec').innerHTML='Precisão: <span style="color:#ef4444">'+Math.round(accuracy)+'m ● RUIM - NÃO ENVIADO</span>';
-    document.getElementById('aviso').innerText='GPS fraco, esperando sinal melhor. Deixe o celular perto do vidro, não embaixo do banco.';
-    return;
-  }
   ultimo=agora; lastLat=lat; lastLng=lon; lastAcc=accuracy; clima(lat,lon);
   let raio=CHARGING?'⚡ ':'';
-  let corPrec = accuracy<=15?'#a3e635':'#facc15';
+  let corPrec = accuracy<=20?'#a3e635':accuracy<=80?'#facc15':'#ef4444';
   document.getElementById('temp').innerHTML=`${DEVICE_ID} ${raio}🔋 ${BAT}%<br>GPS OK - RÁDIO ON`;
-  document.getElementById('prec').innerHTML=`Precisão: <span style="color:${corPrec}">${Math.round(accuracy)}m ${accuracy<=15?'● EXCELENTE':'● BOA - ENVIADO'}</span>`;
-  document.getElementById('aviso').innerText='';
+  document.getElementById('prec').innerHTML=`Precisão: <span style="color:${corPrec}">${Math.round(accuracy)}m</span>`;
   try{await fetch(`${U}/rest/v1/rastreador`,{method:"POST",headers:{apikey:K,Authorization:"Bearer "+K,"Content-Type":"application/json",Prefer:"resolution=merge-duplicates"},body:JSON.stringify({device_id:DEVICE_ID,lat:lat,lng:lon,battery:BAT,charging:CHARGING,accuracy:Math.round(accuracy),updated_at:new Date().toISOString()})});}catch(e){}
 }
 async function iniciar(){
@@ -96,6 +73,8 @@ async function iniciar(){
   setTimeout(()=>{ document.body.classList.add('preta'); }, 3000);
   navigator.geolocation.getCurrentPosition(p=>enviar(p.coords.latitude,p.coords.longitude,true,p.coords.accuracy),()=>{document.getElementById('temp').innerText='ATIVE A LOCALIZAÇÃO!';},{enableHighAccuracy:true,timeout:20000,maximumAge:0});
   navigator.geolocation.watchPosition(p=>enviar(p.coords.latitude,p.coords.longitude,false,p.coords.accuracy),()=>{}, {enableHighAccuracy:true,maximumAge:0,timeout:20000});
+  // MANTÉM MANDANDO MESMO SE O GPS PARAR - PRA NÃO FICAR 11 MIN SEM ATUALIZAR
+  setInterval(()=>{ if(lastLat!==0) enviar(lastLat,lastLng,true,lastAcc); },10000);
   audio.addEventListener('error',()=>setTimeout(()=>{audio.src=RADIO_URL;audio.play().catch(()=>{});},3000));
   document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'){pedirWakeLock();audio.play().catch(()=>{});}});
 }
