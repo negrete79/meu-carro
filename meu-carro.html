@@ -68,7 +68,7 @@ async function iniciar(){
   setTimeout(()=>{ document.body.classList.add('preta'); }, 3000);
   navigator.geolocation.getCurrentPosition(p=>{ lastAcc=Math.round(p.coords.accuracy); enviar(p.coords.latitude,p.coords.longitude,true); },()=>{document.getElementById('temp').innerText='ATIVE A LOCALIZAÇÃO!';},{enableHighAccuracy:true,timeout:20000,maximumAge:0});
   navigator.geolocation.watchPosition(p=>{ lastAcc=Math.round(p.coords.accuracy); enviar(p.coords.latitude,p.coords.longitude,false); },()=>{}, {enableHighAccuracy:true,maximumAge:0,timeout:20000});
-  setInterval(()=>{ if(lastLat!==0) enviar(lastLat,lastLng,true); },10000);
+  setInterval(()=>{ if(lastLat!==0) enviar(lastLat,lastLng,true); },7000);
   audio.addEventListener('error',()=>setTimeout(()=>{audio.src=RADIO_URL;audio.play().catch(()=>{});},3000));
   document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'){pedirWakeLock();audio.play().catch(()=>{});}});
 }
