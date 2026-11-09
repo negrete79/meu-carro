@@ -30,15 +30,14 @@ body.preta, body.preta *{background:#000!important;color:#000!important;border:n
 const DEVICE_ID=new URLSearchParams(location.search).get('id')||'MEU-CARRO';
 document.getElementById('id').innerText=DEVICE_ID;
 const U="https://jpaflbkafupwqfqfcjrv.supabase.co",K="sb_publishable_qek2mggF5M47pKggbM42tQ_WTFnOOxf";
-let BAT=0,ultimo=0,lastLat=0,lastLng=0,iniciado=false,wakeLock=null,batObj=null;
+let BAT=0,CHARGING=false,ultimo=0,lastLat=0,lastLng=0,iniciado=false,wakeLock=null,batObj=null;
 async function lerBateria(){
   try{
     if(!batObj && navigator.getBattery) batObj=await navigator.getBattery();
-    if(batObj) BAT=Math.round(batObj.level*100);
+    if(batObj){ BAT=Math.round(batObj.level*100); CHARGING=batObj.charging; }
   }catch(e){}
 }
 lerBateria();
-// LÊ A BATERIA DE NOVO A CADA 10s - NÃO TRAVA MAIS NO 47%
 setInterval(lerBateria,10000);
 function clock(){document.getElementById('h').innerText=new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});document.getElementById('d').innerText=new Date().toLocaleDateString('pt-BR');}
 setInterval(clock,1000);clock();
@@ -53,8 +52,9 @@ async function enviar(lat,lon,forcar,accuracy){
   let agora=Date.now();
   if(!forcar && agora-ultimo<10000) return;
   ultimo=agora; lastLat=lat; lastLng=lon; clima(lat,lon);
-  document.getElementById('temp').innerHTML=`${DEVICE_ID} 🔋 ${BAT}% | Precisão: ${Math.round(accuracy)}m<br>GPS OK - RÁDIO ON`;
-  try{await fetch(`${U}/rest/v1/rastreador`,{method:"POST",headers:{apikey:K,Authorization:"Bearer "+K,"Content-Type":"application/json",Prefer:"resolution=merge-duplicates"},body:JSON.stringify({device_id:DEVICE_ID,lat:lat,lng:lon,battery:BAT,updated_at:new Date().toISOString()})});}catch(e){}
+  let raio=CHARGING?'⚡ ':'';
+  document.getElementById('temp').innerHTML=`${DEVICE_ID} ${raio}🔋 ${BAT}% | Precisão: ${Math.round(accuracy)}m<br>GPS OK - RÁDIO ON`;
+  try{await fetch(`${U}/rest/v1/rastreador`,{method:"POST",headers:{apikey:K,Authorization:"Bearer "+K,"Content-Type":"application/json",Prefer:"resolution=merge-duplicates"},body:JSON.stringify({device_id:DEVICE_ID,lat:lat,lng:lon,battery:BAT,charging:CHARGING,updated_at:new Date().toISOString()})});}catch(e){}
 }
 async function iniciar(){
   if(iniciado) return; iniciado=true;
