@@ -11,13 +11,13 @@
 <style>
 *{box-sizing:border-box} html,body{margin:0;height:100%;font-family:system-ui,-apple-system,sans-serif;background:#000;overflow:hidden}
 #map{position:fixed;inset:0;z-index:1}
-.topo{position:fixed;top:12px;left:12px;right:12px;z-index:1000;display:flex;justify-content:space-between;gap:8px;pointer-events:none;flex-wrap:wrap}
-.topo > *{pointer-events:auto}
-.btn-topo{background:rgba(0,0,0,.55);color:#fff;border:1px solid rgba(255,255,255,.25);backdrop-filter:blur(10px);padding:10px 14px;border-radius:999px;font-size:14px;font-weight:600;cursor:pointer;transition:all .3s}
-.btn-topo.atualizando{background:#a3e635;color:#000;border-color:#a3e635;transform:scale(1.05)}
-.btn-instalar-topo{background:#a3e635;color:#000;border:none;padding:10px 14px;border-radius:999px;font-size:14px;font-weight:800;cursor:pointer}
-.seg{display:flex;background:rgba(0,0,0,.55);border:1px solid rgba(255,255,255,.25);backdrop-filter:blur(10px);border-radius:999px;padding:3px;gap:2px}
-.seg button{border:0;background:transparent;color:#ccc;padding:8px 14px;border-radius:999px;font-size:14px;font-weight:600;cursor:pointer}
+.topo{position:fixed;top:12px;left:10px;right:10px;z-index:1000;display:flex;justify-content:space-between;align-items:center;gap:6px;pointer-events:none;flex-wrap:nowrap}
+.topo > *{pointer-events:auto;flex-shrink:0}
+.btn-topo{background:rgba(0,0,0,.55);color:#fff;border:1px solid rgba(255,255,255,.25);backdrop-filter:blur(10px);padding:9px 11px;border-radius:999px;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap}
+.btn-topo.atualizando{background:#a3e635;color:#000;border-color:#a3e635}
+.btn-instalar-topo{background:#a3e635;color:#000;border:none;padding:9px 11px;border-radius:999px;font-size:13px;font-weight:800;cursor:pointer;white-space:nowrap}
+.seg{display:flex;background:rgba(0,0,0,.55);border:1px solid rgba(255,255,255,.25);backdrop-filter:blur(10px);border-radius:999px;padding:3px;gap:2px;white-space:nowrap}
+.seg button{border:0;background:transparent;color:#ccc;padding:7px 10px;border-radius:999px;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap}
 .seg button.on{background:#fff;color:#000}
 .btn-carro{position:fixed;right:12px;top:70px;z-index:1000;width:54px;height:54px;border-radius:50%;background:rgba(0,0,0,.45);border:1px solid rgba(255,255,255,.25);backdrop-filter:blur(8px);font-size:28px;cursor:pointer;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transform:scale(.8);transition:opacity .4s,transform .4s}
 .btn-carro.mostrar{opacity:.65;pointer-events:auto;transform:scale(1)}
@@ -198,14 +198,12 @@ function abrirGoogle(){
   let lista = dados;
   if(lista.length===0) return;
   let lat=lista[0].lat, lng=lista[0].lng;
-  // VOLTOU A PERGUNTAR WAZE OU MAPS - usa geo: que abre o menu do Android
   let geoUrl='geo:'+lat+','+lng+'?q='+lat+','+lng+'(CARRO)';
   let a=document.createElement('a');
   a.href=geoUrl;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
-  // Se o celular não tiver app que abre geo:, cai pro Google Maps no navegador depois de 1s
   setTimeout(()=>{ window.open('https://www.google.com/maps?q='+lat+','+lng,'_blank'); }, 1000);
 }
 refresh();
