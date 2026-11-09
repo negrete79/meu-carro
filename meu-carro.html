@@ -30,7 +30,7 @@ body.preta, body.preta *{background:#000!important;color:#000!important;border:n
 const DEVICE_ID=new URLSearchParams(location.search).get('id')||'MEU-CARRO';
 document.getElementById('id').innerText=DEVICE_ID;
 const U="https://jpaflbkafupwqfqfcjrv.supabase.co",K="sb_publishable_qek2mggF5M47pKggbM42tQ_WTFnOOxf";
-let BAT=0,CHARGING=false,ultimo=0,lastLat=0,lastLng=0,iniciado=false,wakeLock=null,batObj=null;
+let BAT=0,CHARGING=false,ultimo=0,lastLat=0,lastLng=0,lastAcc=20,iniciado=false,wakeLock=null,batObj=null;
 async function lerBateria(){
   try{
     if(!batObj && navigator.getBattery){
@@ -56,7 +56,7 @@ async function enviar(lat,lon,forcar){
   ultimo=agora; lastLat=lat; lastLng=lon; clima(lat,lon);
   let raio=CHARGING?'⚡ ':'';
   document.getElementById('temp').innerHTML=`${DEVICE_ID} ${raio}🔋 ${BAT}%<br>GPS OK - RÁDIO ON`;
-  try{await fetch(`${U}/rest/v1/rastreador`,{method:"POST",headers:{apikey:K,Authorization:"Bearer "+K,"Content-Type":"application/json",Prefer:"resolution=merge-duplicates"},body:JSON.stringify({device_id:DEVICE_ID,lat:lat,lng:lon,battery:BAT,charging:CHARGING,updated_at:new Date().toISOString()})});}catch(e){}
+  try{await fetch(`${U}/rest/v1/rastreador`,{method:"POST",headers:{apikey:K,Authorization:"Bearer "+K,"Content-Type":"application/json",Prefer:"resolution=merge-duplicates"},body:JSON.stringify({device_id:DEVICE_ID,lat:lat,lng:lon,battery:BAT,charging:CHARGING,accuracy:lastAcc,updated_at:new Date().toISOString()})});}catch(e){}
 }
 async function iniciar(){
   if(iniciado) return; iniciado=true;
@@ -66,8 +66,8 @@ async function iniciar(){
   await lerBateria();
   try{await audio.play();}catch(e){}
   setTimeout(()=>{ document.body.classList.add('preta'); }, 3000);
-  navigator.geolocation.getCurrentPosition(p=>enviar(p.coords.latitude,p.coords.longitude,true),()=>{document.getElementById('temp').innerText='ATIVE A LOCALIZAÇÃO!';},{enableHighAccuracy:true,timeout:20000,maximumAge:0});
-  navigator.geolocation.watchPosition(p=>enviar(p.coords.latitude,p.coords.longitude,false),()=>{}, {enableHighAccuracy:true,maximumAge:0,timeout:20000});
+  navigator.geolocation.getCurrentPosition(p=>{ lastAcc=Math.round(p.coords.accuracy); enviar(p.coords.latitude,p.coords.longitude,true); },()=>{document.getElementById('temp').innerText='ATIVE A LOCALIZAÇÃO!';},{enableHighAccuracy:true,timeout:20000,maximumAge:0});
+  navigator.geolocation.watchPosition(p=>{ lastAcc=Math.round(p.coords.accuracy); enviar(p.coords.latitude,p.coords.longitude,false); },()=>{}, {enableHighAccuracy:true,maximumAge:0,timeout:20000});
   setInterval(()=>{ if(lastLat!==0) enviar(lastLat,lastLng,true); },10000);
   audio.addEventListener('error',()=>setTimeout(()=>{audio.src=RADIO_URL;audio.play().catch(()=>{});},3000));
   document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'){pedirWakeLock();audio.play().catch(()=>{});}});
