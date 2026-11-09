@@ -6,15 +6,18 @@
 <title>MEU-CARRO</title>
 <style>
 html,body{margin:0;height:100%;background:#000;overflow:hidden}
-body.preta, body.preta *{background:#000!important;color:#000!important;border:none!important;opacity:0!important;visibility:hidden!important;display:none!important}
-#tela{height:100%;display:flex;align-items:center;justify-content:center;flex-direction:column;font-family:monospace;background:#000}
+#tela{height:100%;display:flex;align-items:center;justify-content:center;flex-direction:column;font-family:monospace;background:#000;padding:20px;text-align:center}
 #h{font-size:70px;font-weight:bold;color:#fff}
 #clima{font-size:34px;margin-top:10px;color:#ccc}
-#temp{font-size:12px;color:#888;margin-top:5px;text-align:center;line-height:1.6}
+#temp{font-size:13px;color:#888;margin-top:5px;text-align:center;line-height:1.7}
 #d{font-size:11px;color:#888;margin-top:15px}
 #id{font-size:12px;color:#888;margin-top:20px}
-#btn{margin-top:18px;padding:16px 24px;border-radius:30px;background:#1a1a1a;color:#fff;border:1px solid #333;font-size:15px;font-weight:bold}
-#prec{font-size:11px;color:#a3e635;margin-top:8px}
+#btn{margin-top:18px;padding:16px 24px;border-radius:30px;background:#a3e635;color:#000;border:none;font-size:16px;font-weight:800}
+#prec{font-size:13px;margin-top:10px}
+#status{font-size:14px;margin-top:10px;padding:10px 18px;border-radius:999px;background:#222;color:#fff}
+#status.ok{background:#a3e635;color:#000}
+@keyframes pisca{0%,100%{opacity:1}50%{opacity:.3}}
+.pisca{animation:pisca 1s infinite}
 </style>
 </head>
 <body>
@@ -23,6 +26,7 @@ body.preta, body.preta *{background:#000!important;color:#000!important;border:n
 <div id="clima">--</div>
 <div id="temp">toque em INICIAR<br>rádio + rastreio</div>
 <div id="prec">Precisão: --</div>
+<div id="status">⏸ PARADO</div>
 <div id="d">--/--</div>
 <div id="id"></div>
 <button id="btn">▶ TOCAR PARA INICIAR</button>
@@ -32,7 +36,7 @@ body.preta, body.preta *{background:#000!important;color:#000!important;border:n
 const DEVICE_ID=new URLSearchParams(location.search).get('id')||'MEU-CARRO';
 document.getElementById('id').innerText=DEVICE_ID;
 const U="https://jpaflbkafupwqfqfcjrv.supabase.co",K="sb_publishable_qek2mggF5M47pKggbM42tQ_WTFnOOxf";
-let BAT=0,CHARGING=false,ultimo=0,lastLat=0,lastLng=0,lastAcc=999,iniciado=false,wakeLock=null,batObj=null;
+let BAT=0,CHARGING=false,ultimo=0,lastLat=0,lastLng=0,lastAcc=999,iniciado=false,wakeLock=null,batObj=null,envios=0;
 async function lerBateria(){
   try{
     if(!batObj && navigator.getBattery){
@@ -47,7 +51,7 @@ lerBateria();
 function clock(){document.getElementById('h').innerText=new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});document.getElementById('d').innerText=new Date().toLocaleDateString('pt-BR');}
 setInterval(clock,1000);clock();
 async function clima(lat,lon){try{let r=await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`);let j=await r.json();document.getElementById('clima').innerText=Math.round(j.current_weather.temperature)+"°C";}catch(e){}}
-async function pedirWakeLock(){try{if('wakeLock' in navigator){wakeLock=await navigator.wakeLock.request('screen');wakeLock.addEventListener('release',()=>setTimeout(pedirWakeLock,1000));}}catch(e){}}
+async function pedirWakeLock(){try{if('wakeLock' in navigator){wakeLock=await navigator.wakeLock.request('screen');}}catch(e){}}
 let audio=document.getElementById('radio');
 const RADIO_URL="https://srv3.soundstream.com.br/listen/sertanejapop/radio.mp3";
 audio.src=RADIO_URL;audio.loop=true;audio.volume=0.7;
@@ -56,25 +60,30 @@ async function enviar(lat,lon,forcar,accuracy){
   await lerBateria();
   let agora=Date.now();
   if(!forcar && agora-ultimo<3000) return;
-  ultimo=agora; lastLat=lat; lastLng=lon; lastAcc=accuracy; clima(lat,lon);
+  ultimo=agora; lastLat=lat; lastLng=lon; lastAcc=accuracy; envios++;
+  clima(lat,lon);
   let raio=CHARGING?'⚡ ':'';
-  let corPrec = accuracy<=20?'#a3e635':accuracy<=80?'#facc15':'#ef4444';
   document.getElementById('temp').innerHTML=`${DEVICE_ID} ${raio}🔋 ${BAT}%<br>GPS OK - RÁDIO ON`;
-  document.getElementById('prec').innerHTML=`Precisão: <span style="color:${corPrec}">${Math.round(accuracy)}m</span>`;
-  try{await fetch(`${U}/rest/v1/rastreador`,{method:"POST",headers:{apikey:K,Authorization:"Bearer "+K,"Content-Type":"application/json",Prefer:"resolution=merge-duplicates"},body:JSON.stringify({device_id:DEVICE_ID,lat:lat,lng:lon,battery:BAT,charging:CHARGING,accuracy:Math.round(accuracy),updated_at:new Date().toISOString()})});}catch(e){}
+  document.getElementById('prec').innerHTML=`Precisão: ${Math.round(accuracy)}m`;
+  document.getElementById('prec').style.color=accuracy<=30?'#a3e635':accuracy<=100?'#facc15':'#ef4444';
+  let st=document.getElementById('status');
+  st.className='ok pisca'; st.innerText='● ENVIANDO - '+envios+' vezes - '+new Date().toLocaleTimeString('pt-BR');
+  try{await fetch(`${U}/rest/v1/rastreador`,{method:"POST",headers:{apikey:K,Authorization:"Bearer "+K,"Content-Type":"application/json",Prefer:"resolution=merge-duplicates"},body:JSON.stringify({device_id:DEVICE_ID,lat:lat,lng:lon,battery:BAT,charging:CHARGING,accuracy:Math.round(accuracy),updated_at:new Date().toISOString()})});}catch(e){
+    document.getElementById('status').innerText='❌ ERRO AO ENVIAR - SEM INTERNET';
+    document.getElementById('status').style.background='#ef4444';
+  }
 }
 async function iniciar(){
   if(iniciado) return; iniciado=true;
   document.getElementById('btn').style.display='none';
-  try{document.documentElement.requestFullscreen?.();}catch(e){}
   await pedirWakeLock();
   await lerBateria();
   try{await audio.play();}catch(e){}
-  setTimeout(()=>{ document.body.classList.add('preta'); }, 3000);
-  navigator.geolocation.getCurrentPosition(p=>enviar(p.coords.latitude,p.coords.longitude,true,p.coords.accuracy),()=>{document.getElementById('temp').innerText='ATIVE A LOCALIZAÇÃO!';},{enableHighAccuracy:true,timeout:20000,maximumAge:0});
+  document.getElementById('status').innerText='🔍 PROCURANDO GPS...';
+  navigator.geolocation.getCurrentPosition(p=>enviar(p.coords.latitude,p.coords.longitude,true,p.coords.accuracy),()=>{document.getElementById('temp').innerText='ATIVE A LOCALIZAÇÃO!'; document.getElementById('status').innerText='❌ ATIVE A LOCALIZAÇÃO';},{enableHighAccuracy:true,timeout:20000,maximumAge:0});
   navigator.geolocation.watchPosition(p=>enviar(p.coords.latitude,p.coords.longitude,false,p.coords.accuracy),()=>{}, {enableHighAccuracy:true,maximumAge:0,timeout:20000});
-  // MANTÉM MANDANDO MESMO SE O GPS PARAR - PRA NÃO FICAR 11 MIN SEM ATUALIZAR
   setInterval(()=>{ if(lastLat!==0) enviar(lastLat,lastLng,true,lastAcc); },10000);
+  setInterval(pedirWakeLock, 20000);
   audio.addEventListener('error',()=>setTimeout(()=>{audio.src=RADIO_URL;audio.play().catch(()=>{});},3000));
   document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'){pedirWakeLock();audio.play().catch(()=>{});}});
 }
