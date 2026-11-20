@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Painel Família V10</title>
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta name="theme-color" content="#ffffff">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css?v=10">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js?v=10"></script>
+<style>
+*{box-sizing:border-box} html,body{margin:0;height:100%;font-family:system-ui,-apple-system,sans-serif;overflow:hidden}
+#map{position:fixed;inset:0;z-index:1;background:#EDE9DC}
+.topbar{position:fixed;top:0;left:0;right:0;z-index:1000;display:flex;justify-content:space-between;padding:calc(10px + env(safe-area-inset-top)) 12px 0;pointer-events:none}
+.topbar>*{pointer-events:auto}
+.chip-brand{background:#fff;border-radius:999px;padding:8px 14px;display:flex;align-items:center;gap:8px;box-shadow:0 2px 8px rgba(0,0,0,.15);font-weight:700;font-size:13px}
+.seg{display:flex;background:#fff;border-radius:999px;padding:4px;gap:2px;box-shadow:0 2px 8px rgba(0,0,0,.15)}
+.seg button{border:0;background:transparent;padding:7px 13px;border-radius:999px;font-size:12px;font-weight:700;cursor:pointer}
+.seg button.on{background:#00C48C;color:#fff}
+.seg2{position:fixed;left:50%;transform:translateX(-50%);top:calc(62px + env(safe-area-inset-top));z-index:1000;display:flex;background:#fff;border-radius:999px;padding:4px;gap:2px;box-shadow:0 2px 8px rgba(0,0,0,.15);align-items:center}
+.seg2 button{border:0;background:transparent;padding:6px 10px;border-radius:999px;font-size:11px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px}
+.seg2 button.on{background:#1F1F1F;color:#fff}
+.foto-topo{width:26px;height:26px;border-radius:50%;object-fit:cover;background:#eef0f2;display:inline-flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;overflow:hidden}
+.foto-topo img{width:100%;height:100%;object-fit:cover}
+.painel{position:fixed;left:0;right:0;bottom:0;z-index:1000;background:#fff;border-radius:24px 24px 0 0;padding:6px 16px calc(12px + env(safe-area-inset-bottom));box-shadow:0 -8px 30px rgba(0,0,0,.18);transition:transform .35s;max-height:64vh;overflow-y:auto}
+.painel.escondido{transform:translateY(100%)}
+.handle{width:40px;height:4px;background:#d8dee8;border-radius:99px;margin:6px auto 10px;cursor:pointer}
+.sheet-head{display:flex;justify-content:space-between;align-items:center}
+.eyebrow{font-size:11px;font-weight:800;letter-spacing:.8px;color:#5F6368;text-transform:uppercase}
+.pill-qtd{background:#DFF5EE;color:#00A576;font-size:11px;font-weight:800;padding:4px 10px;border-radius:999px}
+.pill-qtd.parado{background:#fee2e2;color:#dc2626}
+.painel h2{margin:8px 0 0;font-size:18px;font-weight:800}
+.painel p{margin:3px 0 0;color:#5F6368;font-size:12px}
+.atual-line{font-size:11px;color:#9aa0a6;margin-top:3px}
+.items{margin-top:13px;display:flex;flex-direction:column;gap:10px}
+.item{display:flex;align-items:center;gap:11px;padding:10px 11px;border-radius:14px;background:#f8fafc;border:1px solid #eef0f2}
+.item-ico{position:relative;width:44px;height:44px;border-radius:50%;background:#eef0f2;display:flex;align-items:center;justify-content:center;font-size:21px;flex:0 0 auto;overflow:hidden;cursor:pointer}
+.item-ico img{width:100%;height:100%;object-fit:cover}
+.item-mid{flex:1;min-width:0}
+.item-name{font-size:15px;font-weight:800;display:flex;align-items:center;gap:6px;cursor:pointer}
+.item-name:active{opacity:.6}
+.item-sub{font-size:12px;color:#5F6368;margin-top:2px}
+.bat-wrap{display:flex;align-items:center;gap:6px}
+.bat-corpo{width:38px;height:20px;border:1.6px solid #cbd5e1;border-radius:5px;padding:2px;position:relative;background:#fff}
+.bat-fill{height:100%;border-radius:2px}
+.bat-ponta{width:3px;height:9px;background:#cbd5e1;border-radius:0 2px 2px 0}
+.bat-pct{font-size:15px;font-weight:800}
+.bat-raio{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;color:#00A576}
+.precisao{text-align:center;color:#5F6368;font-size:12px;font-weight:600;margin:13px 0 10px;background:#f1f5f9;padding:9px 12px;border-radius:999px}
+.navbar{display:flex;gap:7px}
+.nav-cell{flex:1;background:#fff;border:1px solid #eef0f2;border-radius:14px;padding:9px 4px 8px;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer}
+.nav-cell .nav-lbl{font-size:10px;font-weight:700;color:#5F6368}
+.btn-mostrar{position:fixed;left:50%;transform:translateX(-50%) translateY(90px);bottom:18px;z-index:1001;background:#fff;border:none;padding:11px 20px;border-radius:999px;font-size:13px;font-weight:700;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,.2);transition:transform .35s}
+.btn-mostrar.visivel{transform:translateX(-50%) translateY(0)}
+.pino{width:56px;height:56px;display:flex;align-items:center;justify-content:center}
+.pino .bolinha{width:48px;height:48px;background:#fff;border:4px solid #00C48C;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:24px;box-shadow:0 4px 12px rgba(0,0,0,.3);overflow:hidden}
+.pino.esposa .bolinha{border-color:#ef4444}
+.pino .bolinha img{width:100%;height:100%;object-fit:cover}
+.etiqueta{background:#fff;border-radius:10px;box-shadow:0 4px 12px rgba(0,0,0,.25);padding:6px 10px;text-align:center;font-size:11px;font-weight:800;white-space:nowrap;margin-bottom:4px}
+.modal-fundo{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:2000;display:none;align-items:flex-end;justify-content:center}
+.modal-fundo.aberto{display:flex}
+.modal{background:#fff;width:100%;max-width:480px;border-radius:20px 20px 0 0;padding:20px;padding-bottom:calc(20px + env(safe-area-inset-bottom))}
+.modal h3{margin:0 0 6px;font-size:18px}
+.modal p{margin:0 0 14px;color:#5F6368;font-size:13px}
+.modal input{width:100%;padding:14px;border:2px solid #e2e8f0;border-radius:12px;font-size:16px;font-weight:700;outline:none}
+.modal input:focus{border-color:#00C48C}
+.modal-botoes{display:flex;gap:10px;margin-top:14px}
+.modal-botoes button{flex:1;padding:14px;border:none;border-radius:999px;font-size:14px;font-weight:800;cursor:pointer}
+.btn-cancelar{background:#f1f5f9}
+.btn-salvar{background:#00C48C;color:#fff}
+</style>
+</head>
+<body>
+<div id="map"></div>
+<input type="file" id="fotoInput" accept="image/*" style="display:none">
+<div class="topbar">
+<div class="chip-brand">📍 Painel Família V10</div>
+<div class="seg"><button id="btnRua" onclick="setTipo('rua')">Mapa</button><button id="btnSat" onclick="setTipo('sat')" class="on">Satélite</button></div>
+</div>
+<div class="seg2">
+<button id="fTodos" class="on" onclick="setFiltro('TODOS')">👨‍👩‍👧 TODOS</button>
+<button id="fCarro" onclick="setFiltro('MEU-CARRO')"><span class="foto-topo" id="fotoTopoCarro">🚗</span><span id="fCarroNome">CARRO</span></button>
+<button id="fEsposa" onclick="setFiltro('ESPOSA')"><span class="foto-topo" id="fotoTopoEsposa">💖</span><span id="fEsposaNome">ESPOSA</span></button>
+</div>
+<button class="btn-mostrar" id="btnMostrar" onclick="togglePainel()">▲ Mostrar painel</button>
+<div class="painel" id="painel">
+<div class="handle" onclick="togglePainel()"></div>
+<div class="sheet-head"><span class="eyebrow">Itens Monitorados</span><span class="pill-qtd" id="qtd">2 online</span></div>
+<h2 id="titulo">FAMÍLIA - 2 pessoas</h2>
+<p id="subTitulo">Carro + Esposa • ao vivo</p>
+<div class="atual-line">Atualizado: <span id="atualizado">--</span></div>
+<div class="items">
+<div class="item"><div class="item-ico" id="icoCarro" onclick="trocarFoto('MEU-CARRO')">🚗</div><div class="item-mid"><div class="item-name" onclick="abrirEditar('MEU-CARRO')"><span id="nomeCarro">MEU-CARRO</span></div><div class="item-sub" id="atualCarro">Carregando...</div></div><div id="batCarro">--</div></div>
+<div class="item"><div class="item-ico" id="icoEsposa" onclick="trocarFoto('ESPOSA')">💖</div><div class="item-mid"><div class="item-name" onclick="abrirEditar('ESPOSA')"><span id="nomeEsposa">ESPOSA</span></div><div class="item-sub" id="atualEsposa">Carregando...</div></div><div id="batEsposa">--</div></div>
+</div>
+<div class="precisao" id="precisao">Precisão: aguardando... • Toca no nome pra editar • Toca na bolinha pra trocar foto</div>
+<div class="navbar">
+<button class="nav-cell" onclick="atualizarAgora()"><span>↻</span><span class="nav-lbl">Atualizar</span></button>
+<button class="nav-cell" onclick="toggleHistorico()" id="btnHist"><span>🕐</span><span class="nav-lbl">Histórico</span></button>
+<button class="nav-cell" onclick="abrirGoogle()"><span>📍</span><span class="nav-lbl">Maps</span></button>
+<button class="nav-cell" onclick="voltarProCarro()"><span>🎯</span><span class="nav-lbl">Centralizar</span></button>
+</div>
+</div>
+<div class="modal-fundo" id="modalNome" onclick="if(event.target===this) fecharEditar()">
+<div class="modal">
+<h3>Editar nome</h3>
+<p id="modalSub">Troque o nome que aparece no mapa e na lista</p>
+<input type="text" id="inputNome" maxlength="20" placeholder="Ex: Maria, Gol Branco...">
+<div class="modal-botoes">
+<button class="btn-cancelar" onclick="fecharEditar()">Cancelar</button>
+<button class="btn-salvar" onclick="salvarNome()">Salvar ✅</button>
+</div>
+</div>
+</div>
+<script>
+if('serviceWorker' in navigator){ navigator.serviceWorker.getRegistrations().then(rs=>rs.forEach(r=>r.unregister())); }
+if('caches' in window){ caches.keys().then(ks=>ks.forEach(k=>caches.delete(k))); }
+const U="https://jpaflbkafupwqfqfcjrv.supabase.co";
+const K="sb_publishable_qek2mggF5M47pKggbM42tQ_WTFnOOxf";
+let map=L.map('map',{zoomControl:false}).setView([-20.388,-43.756],15);
+let camadaRua=L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19});
+let camadaSat=L.tileLayer('https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}',{maxZoom:20});
+camadaSat.addTo(map);
+let markers={}, linhas={}, hist=[], histOn=false, dados=[], dadosTodos=[], primeiraVez=true, filtro='TODOS', fotoAlvo=null, editando=null;
+let histBat={};
+function estaCarregandoDeVerdade(device, batAtual){
+  let agora=Date.now();
+  if(!histBat[device]) histBat[device]=[];
+  histBat[device].push({t:agora, bat:batAtual});
+  histBat[device]=histBat[device].filter(h=>agora-h.t<120000);
+  if(histBat[device].length<2) return false;
+  if(batAtual>=100) return false;
+  return histBat[device][histBat[device].length-1].bat > histBat[device][0].bat;
+}
+function getNome(device){
+  try{ return localStorage.getItem('nome_'+device) || (device==='ESPOSA'?'ESPOSA':'MEU-CARRO'); }catch(e){ return device; }
+}
+function abrirEditar(device){
+  editando=device;
+  document.getElementById('modalSub').innerText='Nome atual: '+getNome(device);
+  document.getElementById('inputNome').value=getNome(device);
+  document.getElementById('modalNome').classList.add('aberto');
+  setTimeout(()=>document.getElementById('inputNome').focus(),100);
+  document.getElementById('inputNome').select();
+}
+function fecharEditar(){ document.getElementById('modalNome').classList.remove('aberto'); editando=null; }
+function salvarNome(){
+  if(!editando) return;
+  let novo=document.getElementById('inputNome').value.trim();
+  if(!novo){ alert('Digite um nome!'); return; }
+  try{ localStorage.setItem('nome_'+editando, novo); }catch(e){}
+  fecharEditar();
+  desenhar();
+}
+document.getElementById('inputNome').addEventListener('keydown', function(e){ if(e.key==='Enter') salvarNome(); if(e.key==='Escape') fecharEditar(); });
+let fotoInput=document.getElementById('fotoInput');
+fotoInput.addEventListener('change', function(e){
+  let f=e.target.files[0]; if(!f||!fotoAlvo) return;
+  let rd=new FileReader();
+  rd.onload=function(){
+    let img=new Image();
+    img.onload=function(){
+      let c=document.createElement('canvas'); let s=Math.min(240/img.width,240/img.height,1);
+      c.width=Math.max(1,Math.round(img.width*s)); c.height=Math.max(1,Math.round(img.height*s));
+      c.getContext('2d').drawImage(img,0,0,c.width,c.height);
+      try{ localStorage.setItem('foto_'+fotoAlvo, c.toDataURL('image/jpeg',0.82)); }catch(err){}
+      fotoAlvo=null; desenhar();
+    };
+    img.src=rd.result;
+  };
+  rd.readAsDataURL(f);
+});
+function trocarFoto(id){ fotoAlvo=id; fotoInput.value=''; fotoInput.click(); }
+function getFoto(id){ try{ return localStorage.getItem('foto_'+id); }catch(e){ return null; } }
+// *** CORREÇÃO: ATUALIZA A FOTO LÁ EM CIMA TAMBÉM ***
+function atualizarFotosTopo(){
+  let fc=getFoto('MEU-CARRO'), fe=getFoto('ESPOSA');
+  let elC=document.getElementById('fotoTopoCarro');
+  let elE=document.getElementById('fotoTopoEsposa');
+  if(elC) elC.innerHTML = fc ? '<img src="'+fc+'">' : '🚗';
+  if(elE) elE.innerHTML = fe ? '<img src="'+fe+'">' : '💖';
+}
+function setFiltro(f){
+  filtro=f;
+  document.getElementById('fTodos').className=f==='TODOS'?'on':'';
+  document.getElementById('fCarro').className=f==='MEU-CARRO'?'on':'';
+  document.getElementById('fEsposa').className=f==='ESPOSA'?'on':'';
+  dados = f==='TODOS' ? dadosTodos.slice() : dadosTodos.filter(d=>d.device_id===f);
+  desenhar(); voltarProCarro();
+}
+function setTipo(t){
+  if(t==='rua'){ map.removeLayer(camadaSat); camadaRua.addTo(map); document.getElementById('btnRua').className='on'; document.getElementById('btnSat').className=''; }
+  else { map.removeLayer(camadaRua); camadaSat.addTo(map); document.getElementById('btnSat').className='on'; document.getElementById('btnRua').className=''; }
+}
+function togglePainel(){ let p=document.getElementById('painel'); let esc=p.classList.toggle('escondido'); document.getElementById('btnMostrar').classList.toggle('visivel', esc); }
+function tempoAtras(iso){ if(!iso) return '--'; let s=Math.floor((Date.now()-new Date(iso).getTime())/1000); if(s<3) return 'agora'; if(s<60) return 'há '+s+'s'; let m=Math.floor(s/60); if(m<60) return 'há '+m+'min'; return 'há '+Math.floor(m/60)+'h'; }
+function bateriaHTML(pct, carregandoReal){
+  pct=pct||0; let cor=pct>50?'#22c55e':pct>20?'#f59e0b':'#ef4444';
+  let raio=carregandoReal?'<div class="bat-raio">⚡</div>':'';
+  return '<div class="bat-wrap"><div class="bat-corpo"><div class="bat-fill" style="width:'+pct+'%;background:'+cor+'"></div>'+raio+'</div><div class="bat-ponta"></div><span class="bat-pct">'+pct+'%</span></div>';
+}
+function htmlPino(c){
+  let isEsposa=c.device_id==='ESPOSA';
+  let foto=getFoto(c.device_id);
+  let dentro=foto?'<img src="'+foto+'">':(isEsposa?'💖':'🚗');
+  let nome=getNome(c.device_id);
+  let carregando=estaCarregandoDeVerdade(c.device_id, c.battery||0);
+  return '<div style="display:flex;flex-direction:column;align-items:center"><div class="etiqueta">'+nome+' • '+(c.battery||0)+'% '+(carregando?'⚡':'')+'</div><div class="pino '+(isEsposa?'esposa':'')+'"><div class="bolinha">'+dentro+'</div></div></div>';
+}
+function desenhar(){
+  document.getElementById('nomeCarro').innerText=getNome('MEU-CARRO');
+  document.getElementById('nomeEsposa').innerText=getNome('ESPOSA');
+  document.getElementById('fCarroNome').innerText=getNome('MEU-CARRO');
+  document.getElementById('fEsposaNome').innerText=getNome('ESPOSA');
+  atualizarFotosTopo();
+  if(!dados || dados.length===0) return;
+  let vistos=new Set(); let bounds=[];
+  dados.forEach(c=>{
+    vistos.add(c.device_id);
+    if(markers[c.device_id]){
+      markers[c.device_id].setLatLng([c.lat,c.lng]);
+      markers[c.device_id].setIcon(L.divIcon({html:htmlPino(c),iconSize:[70,90],iconAnchor:[35,82],className:''}));
+    } else {
+      let ic=L.divIcon({html:htmlPino(c),iconSize:[70,90],iconAnchor:[35,82],className:''});
+      markers[c.device_id]=L.marker([c.lat,c.lng],{icon:ic}).addTo(map);
+    }
+    bounds.push([c.lat,c.lng]);
+  });
+  for(let k in markers){ if(!vistos.has(k)){ map.removeLayer(markers[k]); delete markers[k]; } }
+  for(let k in linhas){ map.removeLayer(linhas[k]); delete linhas[k]; }
+  let carro=dadosTodos.find(d=>d.device_id==='MEU-CARRO');
+  let esposa=dadosTodos.find(d=>d.device_id==='ESPOSA');
+  if(carro){
+    let carReal=estaCarregandoDeVerdade('MEU-CARRO', carro.battery||0);
+    document.getElementById('batCarro').innerHTML=bateriaHTML(carro.battery, carReal);
+    document.getElementById('atualCarro').innerText=tempoAtras(carro.updated_at)+' • '+(carro.accuracy?Math.round(carro.accuracy)+'m':'')+(carReal?' • ⚡ Carregando de verdade':'');
+    let fc=getFoto('MEU-CARRO'); if(fc) document.getElementById('icoCarro').innerHTML='<img src="'+fc+'">'; else document.getElementById('icoCarro').innerHTML='🚗';
+  }
+  if(esposa){
+    let espReal=estaCarregandoDeVerdade('ESPOSA', esposa.battery||0);
+    document.getElementById('batEsposa').innerHTML=bateriaHTML(esposa.battery, espReal);
+    document.getElementById('atualEsposa').innerText=tempoAtras(esposa.updated_at)+' • '+(esposa.accuracy?Math.round(esposa.accuracy)+'m':'')+(espReal?' • ⚡ Carregando de verdade':'');
+    let fe=getFoto('ESPOSA'); if(fe) document.getElementById('icoEsposa').innerHTML='<img src="'+fe+'">'; else document.getElementById('icoEsposa').innerHTML='💖';
+  }
+  document.getElementById('atualizado').innerText=tempoAtras(dados[0].updated_at);
+  let sGeral=Math.floor((Date.now()-new Date(dados[0].updated_at).getTime())/1000);
+  let q=document.getElementById('qtd');
+  if(sGeral>30){ q.innerText='SEM SINAL há '+sGeral+'s'; q.classList.add('parado'); } else { q.innerText=dadosTodos.length+' online'; q.classList.remove('parado'); }
+  document.getElementById('precisao').innerText='Precisão: '+(dados[0].accuracy?Math.round(dados[0].accuracy)+'m':'--')+' • V10 • ';
+  document.getElementById('titulo').innerText='FAMÍLIA - '+dadosTodos.length+' pessoas';
+  document.getElementById('subTitulo').innerText=getNome('MEU-CARRO')+' + '+getNome('ESPOSA')+' • ao vivo';
+  if(primeiraVez && bounds.length>0){ primeiraVez=false; map.fitBounds(bounds,{padding:[60,60],maxZoom:17}); }
+  if(histOn){
+    let hc=hist.filter(h=>h.device_id==='MEU-CARRO'); let he=hist.filter(h=>h.device_id==='ESPOSA');
+    if(hc.length>1) linhas['a']=L.polyline(hc.map(h=>[h.lat,h.lng]),{color:'#22c55e',weight:4}).addTo(map);
+    if(he.length>1) linhas['b']=L.polyline(he.map(h=>[h.lat,h.lng]),{color:'#ef4444',weight:4,dashArray:'6 6'}).addTo(map);
+  }
+}
+async function refresh(){
+  try{
+    let r=await fetch(U+'/rest/v1/rastreador?select=*&order=updated_at.desc&limit=50',{headers:{apikey:K,Authorization:'Bearer '+K},cache:'no-store'});
+    let j=await r.json();
+    let m={}; j.forEach(c=>{ if(!m[c.device_id]) m[c.device_id]=c; });
+    dadosTodos=Object.values(m).filter(c=>c.device_id==='MEU-CARRO'||c.device_id==='ESPOSA').sort((a,b)=>new Date(b.updated_at)-new Date(a.updated_at));
+    dados = filtro==='TODOS' ? dadosTodos.slice() : dadosTodos.filter(d=>d.device_id===filtro);
+    desenhar();
+  }catch(e){}
+}
+function atualizarAgora(){ refresh(); voltarProCarro(); }
+function voltarProCarro(){ if(dados.length===0) return; if(dados.length===1) map.flyTo([dados[0].lat,dados[0].lng],17,{duration:1}); else map.flyToBounds(dados.map(c=>[c.lat,c.lng]),{padding:[60,60],maxZoom:16,duration:1}); }
+function toggleHistorico(){ histOn=!histOn; if(histOn) carregarHist(); else desenhar(); }
+async function carregarHist(){ try{ let r=await fetch(U+'/rest/v1/rastreador?select=*&order=updated_at.desc&limit=400',{headers:{apikey:K,Authorization:'Bearer '+K},cache:'no-store'}); hist=await r.json(); desenhar(); }catch(e){} }
+function abrirGoogle(){ if(dados.length===0) return; window.open('https://www.google.com/maps?q='+dados[0].lat+','+dados[0].lng,'_blank'); }
+desenhar();
+refresh();
+setInterval(refresh,5000);
+setInterval(()=>{ if(dadosTodos.length>0) document.getElementById('atualizado').innerText=tempoAtras(dadosTodos[0].updated_at); },1000);
+document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible') refresh(); });
+</script>
+</body>
+</html>
