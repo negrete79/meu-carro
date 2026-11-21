@@ -14,168 +14,84 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <style>
-:root{
-  --green:#00C48C; --green-d:#00A576; --green-bg:#DFF5EE;
-  --red:#ef4444; --red-d:#dc2626; --red-bg:#fee2e2;
-  --ink:#1F1F1F; --muted:#5F6368; --muted2:#9aa0a6;
-  --line:#eef0f2; --chip:#ffffff;
-  --sh-chip:0 2px 8px rgba(0,0,0,.15);
-  --sh-card:0 4px 14px rgba(0,0,0,.12);
-  --sh-fab:0 4px 12px rgba(0,0,0,.20);
-  --sh-sheet:0 -8px 30px rgba(0,0,0,.18);
-}
+:root{--green:#00C48C;--green-d:#00A576;--green-bg:#DFF5EE;--red:#ef4444;--ink:#1F1F1F;--muted:#5F6368;--muted2:#9aa0a6;--line:#eef0f2;--chip:#fff;--sh-chip:0 2px 8px rgba(0,0,0,.15);--sh-card:0 4px 14px rgba(0,0,0,.12);--sh-fab:0 4px 12px rgba(0,0,0,.20);--sh-sheet:0 -8px 30px rgba(0,0,0,.18)}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;height:100%;font-family:'Inter',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;color:var(--ink);overflow:hidden}
 #map{position:fixed;inset:0;z-index:1;background:#EDE9DC}
-.leaflet-container{font-family:inherit}
-.topbar{
-  position:fixed;top:0;left:0;right:0;z-index:1000;
-  display:flex;justify-content:space-between;align-items:flex-start;gap:8px;
-  padding:calc(10px + env(safe-area-inset-top)) 12px 0;
-  pointer-events:none;
-}
+.topbar{position:fixed;top:0;left:0;right:0;z-index:1000;display:flex;justify-content:space-between;align-items:flex-start;gap:8px;padding:calc(10px + env(safe-area-inset-top)) 12px 0;pointer-events:none}
 .topbar>*{pointer-events:auto}
 .topbar-left{display:flex;align-items:center;gap:8px;flex-wrap:nowrap}
-.chip-brand{
-  background:var(--chip);border-radius:999px;padding:8px 14px;
-  display:flex;align-items:center;gap:8px;box-shadow:var(--sh-chip);
-  font-weight:700;font-size:13px;color:var(--ink);white-space:nowrap;
-}
-.chip-brand .logo{
-  width:26px;height:26px;border-radius:50%;
-  background:linear-gradient(135deg,var(--green),var(--green-d));
-  display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px;
-}
-.chip-pill{
-  background:var(--chip);border:none;border-radius:999px;padding:8px 12px;
-  font-size:12px;font-weight:700;color:var(--ink);box-shadow:var(--sh-chip);
-  cursor:pointer;display:inline-flex;align-items:center;gap:5px;font-family:inherit;
-}
-.chip-pill:active{transform:scale(.95)}
+.chip-brand{background:var(--chip);border-radius:999px;padding:8px 14px;display:flex;align-items:center;gap:8px;box-shadow:var(--sh-chip);font-weight:700;font-size:13px;white-space:nowrap}
+.chip-brand .logo{width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,var(--green),var(--green-d));display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px}
+.chip-pill{background:var(--chip);border:none;border-radius:999px;padding:8px 12px;font-size:12px;font-weight:700;box-shadow:var(--sh-chip);cursor:pointer;display:inline-flex;align-items:center;gap:5px;font-family:inherit}
 .chip-install{display:none;background:var(--green);color:#fff}
 .seg{display:flex;background:var(--chip);border-radius:999px;padding:4px;gap:2px;box-shadow:var(--sh-chip);flex-shrink:0}
-.seg button{border:0;background:transparent;color:var(--muted);padding:7px 13px;border-radius:999px;font-size:12px;font-weight:700;cursor:pointer;transition:all .2s}
+.seg button{border:0;background:transparent;color:var(--muted);padding:7px 13px;border-radius:999px;font-size:12px;font-weight:700;cursor:pointer}
 .seg button.on{background:var(--green);color:#fff}
-.seg2{
-  position:fixed;left:50%;transform:translateX(-50%);
-  top:calc(104px + env(safe-area-inset-top));z-index:1000;
-  display:flex;background:var(--chip);border-radius:999px;padding:4px;gap:2px;box-shadow:var(--sh-chip);
-}
-.seg2 button{border:0;background:transparent;color:var(--muted);padding:7px 13px;border-radius:999px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;transition:all .2s;display:flex;align-items:center;gap:6px}
+.seg2{position:fixed;left:50%;transform:translateX(-50%);top:calc(104px + env(safe-area-inset-top));z-index:1000;display:flex;background:var(--chip);border-radius:999px;padding:4px;gap:2px;box-shadow:var(--sh-chip)}
+.seg2 button{border:0;background:transparent;color:var(--muted);padding:7px 13px;border-radius:999px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;display:flex;align-items:center;gap:6px}
 .seg2 button.on{background:var(--ink);color:#fff}
 .foto-topo{width:22px;height:22px;border-radius:50%;background:#eef0f2;display:inline-flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;overflow:hidden}
 .foto-topo img{width:100%;height:100%;object-fit:cover}
-.painel{
-  position:fixed;left:0;right:0;bottom:0;z-index:1000;background:#fff;
-  border-radius:24px 24px 0 0;padding:6px 16px calc(12px + env(safe-area-inset-bottom));
-  box-shadow:var(--sh-sheet);transition:transform .38s cubic-bezier(.22,.61,.36,1);
-  max-height:64vh;overflow-y:auto;overscroll-behavior:contain;
-}
+.painel{position:fixed;left:0;right:0;bottom:0;z-index:1000;background:#fff;border-radius:24px 24px 0 0;padding:6px 16px calc(12px + env(safe-area-inset-bottom));box-shadow:var(--sh-sheet);transition:transform .38s;max-height:64vh;overflow-y:auto}
 .painel.escondido{transform:translateY(100%)}
 .handle{width:40px;height:4px;background:#d8dee8;border-radius:99px;margin:6px auto 10px;cursor:pointer}
 .sheet-head{display:flex;justify-content:space-between;align-items:center}
 .eyebrow{font-size:11px;font-weight:800;letter-spacing:.8px;color:var(--muted);text-transform:uppercase}
 .pill-qtd{background:var(--green-bg);color:var(--green-d);font-size:11px;font-weight:800;padding:4px 10px;border-radius:999px;display:inline-flex;align-items:center;gap:5px}
 .pill-qtd::before{content:"●";font-size:9px}
-.painel h2{margin:8px 0 0;font-size:18px;font-weight:800;letter-spacing:-.2px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.painel h2{margin:8px 0 0;font-size:18px;font-weight:800;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .badge-online{font-size:11px;font-weight:700;color:var(--green-d);background:var(--green-bg);padding:3px 8px;border-radius:999px}
-.painel h2+p,.sub{margin:3px 0 0;color:var(--muted);font-size:12px;font-weight:500}
+.painel h2+p,.sub{margin:3px 0 0;color:var(--muted);font-size:12px}
 .atual-line{font-size:11px;color:var(--muted2);font-weight:600;margin-top:3px}
 .items{margin-top:13px;display:flex;flex-direction:column;gap:10px}
-.item{
-  display:flex;align-items:center;gap:11px;padding:10px 11px;
-  border-radius:14px;background:#f8fafc;border:1px solid var(--line);
-}
-.item-ico{
-  position:relative;width:44px;height:44px;border-radius:50%;background:#eef0f2;
-  display:flex;align-items:center;justify-content:center;font-size:21px;flex:0 0 auto;
-}
-.item-ico .item-dot{
-  position:absolute;right:-1px;bottom:-1px;width:14px;height:14px;border-radius:50%;
-  border:2.5px solid #fff;background:var(--green);
-}
+.item{display:flex;align-items:center;gap:11px;padding:10px 11px;border-radius:14px;background:#f8fafc;border:1px solid var(--line)}
+.item-ico{position:relative;width:44px;height:44px;border-radius:50%;background:#eef0f2;display:flex;align-items:center;justify-content:center;font-size:21px;flex:0 0 auto;cursor:pointer}
+.item-ico .item-dot{position:absolute;right:-1px;bottom:-1px;width:14px;height:14px;border-radius:50%;border:2.5px solid #fff;background:var(--green)}
 .item.esposa .item-ico .item-dot{background:var(--red)}
 .item-mid{flex:1;min-width:0}
-.item-name{font-size:15px;font-weight:800;color:var(--ink);line-height:1.2;cursor:pointer}
-.item-sub{font-size:12px;color:var(--muted);margin-top:2px;line-height:1.3}
-.item-bat{flex:0 0 auto}
+.item-name{font-size:15px;font-weight:800;line-height:1.2;cursor:pointer}
+.item-sub{font-size:12px;color:var(--muted);margin-top:2px}
 .bat-wrap{display:flex;align-items:center;gap:6px}
 .bat-corpo{width:38px;height:20px;border:1.6px solid #cbd5e1;border-radius:5px;padding:2px;position:relative;background:#fff}
-.bat-fill{height:100%;border-radius:2px;transition:width .5s ease}
+.bat-fill{height:100%;border-radius:2px}
 .bat-ponta{width:3px;height:9px;background:#cbd5e1;border-radius:0 2px 2px 0}
-.bat-pct{font-size:15px;font-weight:800;color:var(--ink)}
+.bat-pct{font-size:15px;font-weight:800}
 .bat-raio{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;color:var(--green-d)}
-.precisao{
-  text-align:center;color:var(--muted);font-size:12px;font-weight:600;margin:13px 0 10px;
-  background:#f1f5f9;padding:9px 12px;border-radius:999px;
-}
-.navbar{display:flex;gap:7px;margin-top:2px}
-.nav-cell{
-  flex:1;background:#fff;border:1px solid var(--line);border-radius:14px;
-  padding:9px 4px 8px;display:flex;flex-direction:column;align-items:center;gap:3px;
-  cursor:pointer;font-family:inherit;transition:transform .15s,background .2s;
-}
-.nav-cell:active{transform:scale(.96)}
-.nav-cell .nav-ico{font-size:18px;line-height:1}
-.nav-cell .nav-lbl{font-size:10px;font-weight:700;color:var(--muted);line-height:1.15;text-align:center;white-space:nowrap}
+.precisao{text-align:center;color:var(--muted);font-size:12px;font-weight:600;margin:13px 0 10px;background:#f1f5f9;padding:9px 12px;border-radius:999px}
+.navbar{display:flex;gap:7px}
+.nav-cell{flex:1;background:#fff;border:1px solid var(--line);border-radius:14px;padding:9px 4px 8px;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;font-family:inherit}
+.nav-cell .nav-ico{font-size:18px}
+.nav-cell .nav-lbl{font-size:10px;font-weight:700;color:var(--muted);white-space:nowrap}
 .nav-cell.active,.nav-cell.on{background:var(--green-bg);border-color:var(--green-bg)}
-.nav-cell.active .nav-ico,.nav-cell.on .nav-ico{color:var(--green-d)}
 .nav-cell.active .nav-lbl,.nav-cell.on .nav-lbl{color:var(--green-d)}
 .nav-cell .nav-ico.spin{animation:spin .9s linear infinite;display:inline-block}
 @keyframes spin{to{transform:rotate(360deg)}}
-.btn-mostrar{
-  position:fixed;left:50%;transform:translateX(-50%) translateY(90px);bottom:18px;z-index:1001;
-  background:#fff;color:var(--ink);border:none;padding:11px 20px;border-radius:999px;
-  font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;
-  transition:transform .38s cubic-bezier(.22,.61,.36,1);box-shadow:var(--sh-fab);
-}
+.btn-mostrar{position:fixed;left:50%;transform:translateX(-50%) translateY(90px);bottom:18px;z-index:1001;background:#fff;border:none;padding:11px 20px;border-radius:999px;font-size:13px;font-weight:700;cursor:pointer;box-shadow:var(--sh-fab)}
 .btn-mostrar.visivel{transform:translateX(-50%) translateY(0)}
 .pino{width:54px;height:54px;display:flex;align-items:center;justify-content:center}
-.pino .bolinha{
-  width:48px;height:48px;background:#fff;border:4px solid var(--green);border-radius:50%;
-  display:flex;align-items:center;justify-content:center;font-size:24px;box-shadow:0 4px 12px rgba(0,0,0,.30);
-}
+.pino .bolinha{width:48px;height:48px;background:#fff;border:4px solid var(--green);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:24px;box-shadow:0 4px 12px rgba(0,0,0,.30)}
 .pino.esposa .bolinha{border-color:var(--red)}
-.pino .onda{display:none !important}
-.leaflet-tooltip.leaflet-tooltip-card{
-  background:#fff;border:none;border-radius:12px;box-shadow:var(--sh-card);
-  padding:0;color:var(--ink);white-space:normal;pointer-events:none;
-}
-.leaflet-tooltip.leaflet-tooltip-card:before{display:none !important}
+.leaflet-tooltip.leaflet-tooltip-card{background:#fff;border:none;border-radius:12px;box-shadow:var(--sh-card);padding:0;color:var(--ink);white-space:normal;pointer-events:none}
+.leaflet-tooltip.leaflet-tooltip-card:before{display:none!important}
 .ti{padding:7px 10px;min-width:118px}
-.ti-top{display:flex;align-items:center;gap:5px;font-size:13px;font-weight:800;color:var(--ink)}
+.ti-top{display:flex;align-items:center;gap:5px;font-size:13px;font-weight:800}
 .ti-row{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--muted);margin-top:2px}
 .ti-dot{width:7px;height:7px;border-radius:50%;background:var(--green);display:inline-block}
 .ti-dot.red{background:var(--red)}
 .ti-sub{font-size:10px;color:var(--muted2);margin-top:1px}
-.ti-avatar{
-  width:32px;height:32px;border-radius:50%;flex:0 0 auto;cursor:pointer;pointer-events:auto;
-  background-size:cover;background-position:center;background-color:#fff;
-  border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.25);
-}
+.ti-avatar{width:32px;height:32px;border-radius:50%;flex:0 0 auto;cursor:pointer;pointer-events:auto;background-size:cover;background-position:center;background-color:#fff;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.25)}
 .ti-avatar.ti-empty{background:#eef0f2;display:flex;align-items:center;justify-content:center;font-size:16px;position:relative}
-.ti-cam{
-  position:absolute;right:-3px;bottom:-3px;width:15px;height:15px;border-radius:50%;
-  background:#fff;display:flex;align-items:center;justify-content:center;font-size:9px;
-  box-shadow:0 1px 3px rgba(0,0,0,.3);
-}
-.ti-x{pointer-events:auto;cursor:pointer;color:#9aa0a6;font-size:12px;font-weight:800;padding:0 3px;margin-left:-2px;line-height:1}
-.ti-x:active{color:var(--red)}
+.ti-cam{position:absolute;right:-3px;bottom:-3px;width:15px;height:15px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;font-size:9px;box-shadow:0 1px 3px rgba(0,0,0,.3)}
+.ti-x{pointer-events:auto;cursor:pointer;color:#9aa0a6;font-size:12px;font-weight:800;padding:0 3px;margin-left:-2px}
 .ti-nome{font-weight:800}
 .pino .bolinha.foto{background-size:cover;background-position:center;background-color:#fff}
-.item-ico{cursor:pointer;overflow:visible}
-.item-ico .item-emoji{line-height:1}
-.item-ico .item-x{
-  display:none;position:absolute;left:-2px;top:-2px;width:15px;height:15px;border-radius:50%;
-  background:#fff;color:var(--red);font-size:9px;font-weight:800;
-  align-items:center;justify-content:center;box-shadow:0 1px 3px rgba(0,0,0,.3);cursor:pointer;
-}
+.item-ico .item-x{display:none;position:absolute;left:-2px;top:-2px;width:15px;height:15px;border-radius:50%;background:#fff;color:var(--red);font-size:9px;font-weight:800;align-items:center;justify-content:center;box-shadow:0 1px 3px rgba(0,0,0,.3);cursor:pointer}
 .item-ico.com-foto{background-size:cover;background-position:center}
 .item-ico.com-foto .item-emoji{display:none}
 .item-ico.com-foto .item-x{display:flex}
-.lock{position:fixed;bottom:4px;right:6px;z-index:1002;font-size:9px;opacity:.3;color:#000;pointer-events:none;font-weight:600}
-/* MODAL CLARO - sem tela escura */
-.modal-nome{position:fixed;inset:0;z-index:2000;display:none;align-items:center;justify-content:center;padding:20px;background:rgba(255,255,255,.55);backdrop-filter:blur(2px)}
+.lock{position:fixed;bottom:4px;right:6px;z-index:1002;font-size:9px;opacity:.3;pointer-events:none;font-weight:600}
+.modal-nome{position:fixed;inset:0;z-index:2000;display:none;align-items:center;justify-content:center;padding:20px;background:rgba(255,255,255,.55)}
 .modal-nome.aberto{display:flex}
 .modal-card{background:#fff;border-radius:20px;padding:20px;width:100%;max-width:320px;box-shadow:0 10px 30px rgba(0,0,0,.15);border:1px solid #eef0f2}
 .modal-card h3{margin:0;font-size:16px;font-weight:800}
@@ -186,19 +102,8 @@ html,body{margin:0;height:100%;font-family:'Inter',system-ui,-apple-system,'Sego
 .modal-botoes button{flex:1;padding:12px;border:0;border-radius:12px;font-size:14px;font-weight:800;cursor:pointer;font-family:inherit}
 .btn-cancelar{background:#f1f5f9;color:var(--muted)}
 .btn-salvar{background:var(--green);color:#fff}
-@media (max-width:380px){
-  .seg2 button{padding:6px 9px;font-size:10px}
-  .chip-brand{padding:7px 11px;font-size:12px}
-  .seg button{padding:6px 10px;font-size:11px}
-  .nav-cell .nav-lbl{font-size:9px}
-  .item-name{font-size:14px}
-}
-@media (min-width:520px){
-  .painel{left:50%;right:auto;transform:translateX(-50%);width:460px}
-  .painel.escondido{transform:translateX(-50%) translateY(100%)}
-  .btn-mostrar{left:50%;transform:translateX(-50%) translateY(90px)}
-  .btn-mostrar.visivel{transform:translateX(-50%) translateY(0)}
-}
+@media (max-width:380px){.seg2 button{padding:6px 9px;font-size:10px}.chip-brand{padding:7px 11px;font-size:12px}.seg button{padding:6px 10px;font-size:11px}.nav-cell .nav-lbl{font-size:9px}.item-name{font-size:14px}}
+@media (min-width:520px){.painel{left:50%;right:auto;transform:translateX(-50%);width:460px}.painel.escondido{transform:translateX(-50%) translateY(100%)}}
 </style>
 </head>
 <body>
@@ -222,28 +127,19 @@ html,body{margin:0;height:100%;font-family:'Inter',system-ui,-apple-system,'Sego
 <button class="btn-mostrar" id="btnMostrar" onclick="togglePainel()">▲ Mostrar painel</button>
 <div class="painel" id="painel">
   <div class="handle" onclick="togglePainel()"></div>
-  <div class="sheet-head">
-    <span class="eyebrow">Itens Monitorados</span>
-    <span class="pill-qtd" id="qtd">2 online</span>
-  </div>
+  <div class="sheet-head"><span class="eyebrow">Itens Monitorados</span><span class="pill-qtd" id="qtd">2 online</span></div>
   <h2 id="titulo">FAMÍLIA - 2 pessoas <span class="badge-online">● ao vivo</span></h2>
   <p id="subTitulo">Carro + Esposa • ao vivo</p>
   <div class="atual-line">Atualizado: <span id="atualizado">--</span></div>
   <div class="items">
     <div class="item carro">
       <div class="item-ico" id="icoCarro" onclick="addFoto('MEU-CARRO')"><span class="item-emoji">🚗</span><span class="item-dot"></span><span class="item-x" onclick="event.stopPropagation();removeFoto('MEU-CARRO')">✕</span></div>
-      <div class="item-mid">
-        <div class="item-name" id="nomeListaCarro" onclick="editarNome('MEU-CARRO')">MEU-CARRO</div>
-        <div class="item-sub" id="atualCarro">--</div>
-      </div>
+      <div class="item-mid"><div class="item-name" id="nomeListaCarro" onclick="editarNome('MEU-CARRO')">MEU-CARRO</div><div class="item-sub" id="atualCarro">--</div></div>
       <div class="item-bat" id="batCarro">--</div>
     </div>
     <div class="item esposa">
       <div class="item-ico" id="icoEsposa" onclick="addFoto('ESPOSA')"><span class="item-emoji">💖</span><span class="item-dot"></span><span class="item-x" onclick="event.stopPropagation();removeFoto('ESPOSA')">✕</span></div>
-      <div class="item-mid">
-        <div class="item-name" id="nomeListaEsposa" onclick="editarNome('ESPOSA')">ESPOSA</div>
-        <div class="item-sub" id="atualEsposa">--</div>
-      </div>
+      <div class="item-mid"><div class="item-name" id="nomeListaEsposa" onclick="editarNome('ESPOSA')">ESPOSA</div><div class="item-sub" id="atualEsposa">--</div></div>
       <div class="item-bat" id="batEsposa">--</div>
     </div>
   </div>
@@ -256,19 +152,13 @@ html,body{margin:0;height:100%;font-family:'Inter',system-ui,-apple-system,'Sego
   </div>
 </div>
 <div class="modal-nome" id="modalNome" onclick="if(event.target===this) fecharModalNome()">
-  <div class="modal-card">
-    <h3 id="modalTitulo">Editar nome</h3>
-    <p id="modalSub">Digite o novo nome</p>
-    <input id="inputNome" maxlength="20" autocomplete="off">
-    <div class="modal-botoes">
-      <button class="btn-cancelar" onclick="fecharModalNome()">Cancelar</button>
-      <button class="btn-salvar" onclick="salvarNome()">Salvar</button>
-    </div>
-  </div>
+  <div class="modal-card"><h3 id="modalTitulo">Editar nome</h3><p id="modalSub">Digite o novo nome</p><input id="inputNome" maxlength="20" autocomplete="off"><div class="modal-botoes"><button class="btn-cancelar" onclick="fecharModalNome()">Cancelar</button><button class="btn-salvar" onclick="salvarNome()">Salvar</button></div></div>
 </div>
-<div class="lock">🔒 PAINEL FAMÍLIA v4.2 GEOZILLA • AUTO 7s • SÓ 2</div>
+<div class="lock">🔒 PAINEL FAMÍLIA v4.3 GEOZILLA • AUTO 7s • SÓ 2</div>
 <script>
-if('serviceWorker' in navigator){ navigator.serviceWorker.register('./sw.js').catch(()=>{}); }
+// CORRETO: limpa o service worker velho que travava a atualização
+if('serviceWorker' in navigator){ navigator.serviceWorker.getRegistrations().then(rs=>rs.forEach(r=>r.unregister())); }
+if('caches' in window){ caches.keys().then(ks=>ks.forEach(k=>caches.delete(k))); }
 const U="https://jpaflbkafupwqfqfcjrv.supabase.co", K="sb_publishable_qek2mggF5M47pKggbM42tQ_WTFnOOxf";
 let map=L.map('map',{zoomControl:false}).setView([-20.38,-43.5],15);
 let camadaRua=L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19});
@@ -292,150 +182,21 @@ function getEsposa(){ return dadosTodos.find(d=>d.device_id==='ESPOSA'); }
 function getNome(id){ try{ return localStorage.getItem('nome_'+id) || (id==='ESPOSA'?'ESPOSA':'MEU-CARRO'); }catch(e){ return id==='ESPOSA'?'ESPOSA':'MEU-CARRO'; } }
 function nomeCurto(id){ let n=getNome(id); if(id==='MEU-CARRO' && n==='MEU-CARRO') return 'CARRO'; return n; }
 let editandoId=null;
-function editarNome(id){
-  editandoId=id;
-  let atual=getNome(id);
-  document.getElementById('modalTitulo').innerText='Editar '+atual;
-  document.getElementById('modalSub').innerText='Novo nome para '+(id==='ESPOSA'?'sua esposa':'seu carro')+':';
-  let inp=document.getElementById('inputNome');
-  inp.value=atual;
-  document.getElementById('modalNome').classList.add('aberto');
-  setTimeout(()=>{ inp.focus(); inp.select(); },100);
-}
+function editarNome(id){ editandoId=id; let atual=getNome(id); document.getElementById('modalTitulo').innerText='Editar '+atual; document.getElementById('modalSub').innerText='Novo nome para '+(id==='ESPOSA'?'sua esposa':'seu carro')+':'; let inp=document.getElementById('inputNome'); inp.value=atual; document.getElementById('modalNome').classList.add('aberto'); setTimeout(()=>{ inp.focus(); inp.select(); },100); }
 function fecharModalNome(){ document.getElementById('modalNome').classList.remove('aberto'); editandoId=null; }
-function salvarNome(){
-  if(!editandoId) return;
-  let novo=document.getElementById('inputNome').value.trim().toUpperCase().slice(0,20);
-  if(!novo){ fecharModalNome(); return; }
-  try{ localStorage.setItem('nome_'+editandoId, novo); }catch(e){}
-  fecharModalNome();
-  desenhar();
-}
+function salvarNome(){ if(!editandoId) return; let novo=document.getElementById('inputNome').value.trim().toUpperCase().slice(0,20); if(!novo){ fecharModalNome(); return; } try{ localStorage.setItem('nome_'+editandoId, novo); }catch(e){} fecharModalNome(); desenhar(); }
 document.getElementById('inputNome').addEventListener('keydown',function(e){ if(e.key==='Enter') salvarNome(); if(e.key==='Escape') fecharModalNome(); });
-function infoCardHTML(c){
-  let isEsposa=c.device_id==='ESPOSA';
-  let nome=getNome(c.device_id);
-  let emoji=isEsposa?'💖':'🚗';
-  let foto=getFoto(c.device_id);
-  let avatar;
-  if(foto){
-    avatar='<div class="ti-avatar" style="background-image:url('+foto+')" onclick="addFoto(\''+c.device_id+'\')"></div><span class="ti-x" onclick="removeFoto(\''+c.device_id+'\')">✕</span>';
-  } else {
-    avatar='<div class="ti-avatar ti-empty" onclick="addFoto(\''+c.device_id+'\')">'+emoji+'<span class="ti-cam">📷</span></div>';
-  }
-  return '<div class="ti"><div class="ti-top">'+avatar+'<span class="ti-nome">'+nome+'</span></div><div class="ti-row"><span class="ti-dot '+(isEsposa?'red':'')+'"></span>'+txtBateria(c)+'</div><div class="ti-sub">'+tempoAtras(c.updated_at)+(c.accuracy?' • '+Math.round(c.accuracy)+'m':'')+'</div></div>';
-}
+function infoCardHTML(c){ let isEsposa=c.device_id==='ESPOSA'; let nome=getNome(c.device_id); let emoji=isEsposa?'💖':'🚗'; let foto=getFoto(c.device_id); let avatar; if(foto){ avatar='<div class="ti-avatar" style="background-image:url('+foto+')" onclick="addFoto(\''+c.device_id+'\')"></div><span class="ti-x" onclick="removeFoto(\''+c.device_id+'\')">✕</span>'; } else { avatar='<div class="ti-avatar ti-empty" onclick="addFoto(\''+c.device_id+'\')">'+emoji+'<span class="ti-cam">📷</span></div>'; } return '<div class="ti"><div class="ti-top">'+avatar+'<span class="ti-nome">'+nome+'</span></div><div class="ti-row"><span class="ti-dot '+(isEsposa?'red':'')+'"></span>'+txtBateria(c)+'</div><div class="ti-sub">'+tempoAtras(c.updated_at)+(c.accuracy?' • '+Math.round(c.accuracy)+'m':'')+'</div></div>'; }
 function getFoto(id){ try{ return localStorage.getItem('foto_'+id); }catch(e){ return null; } }
-function atualizarFotosTopo(){
-  var fc=getFoto('MEU-CARRO'), fe=getFoto('ESPOSA');
-  var elC=document.getElementById('fotoTopoCarro');
-  var elE=document.getElementById('fotoTopoEsposa');
-  if(elC) elC.innerHTML = fc ? '<img src="'+fc+'">' : '🚗';
-  if(elE) elE.innerHTML = fe ? '<img src="'+fe+'">' : '💖';
-  var nC=document.getElementById('nomeTopoCarro'); if(nC) nC.innerText=nomeCurto('MEU-CARRO');
-  var nE=document.getElementById('nomeTopoEsposa'); if(nE) nE.innerText=nomeCurto('ESPOSA');
-  var lC=document.getElementById('nomeListaCarro'); if(lC) lC.innerText=getNome('MEU-CARRO');
-  var lE=document.getElementById('nomeListaEsposa'); if(lE) lE.innerText=getNome('ESPOSA');
-}
-function pinIconHTML(id){
-  let isEsposa=id==='ESPOSA';
-  let emoji=isEsposa?'💖':'🚗';
-  let foto=getFoto(id);
-  let bolinha = foto ? '<div class="bolinha foto" style="background-image:url('+foto+')"></div>' : '<div class="bolinha">'+emoji+'</div>';
-  return '<div class="pino '+(isEsposa?'esposa':'')+'">'+bolinha+'</div>';
-}
+function atualizarFotosTopo(){ var fc=getFoto('MEU-CARRO'), fe=getFoto('ESPOSA'); var elC=document.getElementById('fotoTopoCarro'); var elE=document.getElementById('fotoTopoEsposa'); if(elC) elC.innerHTML = fc ? '<img src="'+fc+'">' : '🚗'; if(elE) elE.innerHTML = fe ? '<img src="'+fe+'">' : '💖'; var nC=document.getElementById('nomeTopoCarro'); if(nC) nC.innerText=nomeCurto('MEU-CARRO'); var nE=document.getElementById('nomeTopoEsposa'); if(nE) nE.innerText=nomeCurto('ESPOSA'); var lC=document.getElementById('nomeListaCarro'); if(lC) lC.innerText=getNome('MEU-CARRO'); var lE=document.getElementById('nomeListaEsposa'); if(lE) lE.innerText=getNome('ESPOSA'); }
+function pinIconHTML(id){ let isEsposa=id==='ESPOSA'; let emoji=isEsposa?'💖':'🚗'; let foto=getFoto(id); let bolinha = foto ? '<div class="bolinha foto" style="background-image:url('+foto+')"></div>' : '<div class="bolinha">'+emoji+'</div>'; return '<div class="pino '+(isEsposa?'esposa':'')+'">'+bolinha+'</div>'; }
 let fotoAlvo=null;
 function addFoto(id){ fotoAlvo=id; let inp=document.getElementById('fotoInput'); inp.value=''; inp.click(); }
 function removeFoto(id){ try{ localStorage.removeItem('foto_'+id); }catch(e){} desenhar(); }
-function onFotoChange(e){
-  let f=e.target.files && e.target.files[0];
-  if(!f || !fotoAlvo){ e.target.value=''; fotoAlvo=null; return; }
-  let rd=new FileReader();
-  rd.onload=()=>{
-    let img=new Image();
-    img.onload=()=>{
-      try{
-        let mx=240, c=document.createElement('canvas'), ctx=c.getContext('2d');
-        let s=Math.min(mx/img.width||1, mx/img.height||1, 1);
-        c.width=Math.max(1,Math.round(img.width*s)); c.height=Math.max(1,Math.round(img.height*s));
-        ctx.drawImage(img,0,0,c.width,c.height);
-        let data=c.toDataURL('image/jpeg',0.82);
-        try{ localStorage.setItem('foto_'+fotoAlvo, data); }
-        catch(err){ alert('Não foi possível salvar a foto. Tente uma imagem menor.'); }
-        desenhar();
-      }catch(err){ alert('Erro ao processar a imagem.'); }
-      fotoAlvo=null; e.target.value='';
-    };
-    img.onerror=()=>{ alert('Não foi possível ler esta imagem.'); fotoAlvo=null; e.target.value=''; };
-    img.src=rd.result;
-  };
-  rd.onerror=()=>{ alert('Não foi possível ler o arquivo.'); fotoAlvo=null; e.target.value=''; };
-  rd.readAsDataURL(f);
-}
-function applyFotoIco(elId, id){
-  let el=document.getElementById(elId); if(!el) return;
-  let foto=getFoto(id);
-  if(foto){ el.classList.add('com-foto'); el.style.backgroundImage="url('"+foto+"')"; }
-  else { el.classList.remove('com-foto'); el.style.backgroundImage=''; }
-}
-function desenhar(){
-  atualizarFotosTopo();
-  let vistos=new Set();
-  let lista=dados;
-  if(lista.length===0) return;
-  let bounds=[];
-  lista.forEach(c=>{
-    vistos.add(c.device_id);
-    let info=infoCardHTML(c);
-    let fAtual=(getFoto(c.device_id)||'')+'|'+getNome(c.device_id);
-    if(markers[c.device_id]){
-      markers[c.device_id].setLatLng([c.lat,c.lng]);
-      markers[c.device_id].setTooltipContent(info);
-      if(markers[c.device_id]._fotoAtual !== fAtual){
-        markers[c.device_id]._fotoAtual=fAtual;
-        markers[c.device_id].setIcon(L.divIcon({html:pinIconHTML(c.device_id),iconSize:[48,48],iconAnchor:[24,24],className:''}));
-      }
-    } else {
-      let icone=L.divIcon({html:pinIconHTML(c.device_id),iconSize:[48,48],iconAnchor:[24,24],className:''});
-      markers[c.device_id]=L.marker([c.lat,c.lng],{icon:icone}).addTo(map).bindTooltip(info,{permanent:true,direction:'bottom',offset:[0,6],className:'leaflet-tooltip-card'});
-      markers[c.device_id]._fotoAtual=fAtual;
-    }
-    bounds.push([c.lat,c.lng]);
-  });
-  for(let k in markers){ if(!vistos.has(k)){ map.removeLayer(markers[k]); delete markers[k]; } }
-  for(let k in linhas){ map.removeLayer(linhas[k]); delete linhas[k]; }
-  let carro=getCarro(), esposa=getEsposa();
-  document.getElementById('titulo').innerHTML=filtro==='TODOS'?'FAMÍLIA - '+dadosTodos.length+' pessoas <span class="badge-online">● ao vivo</span>':(filtro==='ESPOSA'?getNome('ESPOSA')+' <span class="badge-online" style="color:#b91c1c;background:#fee2e2">● ao vivo</span>':getNome('MEU-CARRO')+' <span class="badge-online">● ao vivo</span>');
-  document.getElementById('subTitulo').innerText=filtro==='TODOS'?nomeCurto('MEU-CARRO')+' + '+nomeCurto('ESPOSA')+' • ao vivo':(filtro==='ESPOSA'?getNome('ESPOSA')+' • ao vivo':getNome('MEU-CARRO')+' • ao vivo');
-  if(carro){ document.getElementById('batCarro').innerHTML=bateriaHTML(carro.battery, carro.charging); document.getElementById('atualCarro').innerText=tempoAtras(carro.updated_at)+' • Precisão '+(carro.accuracy?Math.round(carro.accuracy)+'m':'--'); }
-  if(esposa){ document.getElementById('batEsposa').innerHTML=bateriaHTML(esposa.battery, esposa.charging); document.getElementById('atualEsposa').innerText=tempoAtras(esposa.updated_at)+' • Precisão '+(esposa.accuracy?Math.round(esposa.accuracy)+'m':'--'); }
-  applyFotoIco('icoCarro','MEU-CARRO');
-  applyFotoIco('icoEsposa','ESPOSA');
-  document.getElementById('atualizado').innerText=tempoAtras(lista[0].updated_at);
-  document.getElementById('qtd').innerText=dadosTodos.length+' online';
-  let primeiro=lista[0]; let acc=primeiro.accuracy; let txtAcc=acc?Math.round(acc)+'m':'aguardando GPS...';
-  document.getElementById('precisao').innerText='Precisão: '+txtAcc+' • '+getNome(primeiro.device_id)+(primeiro.charging?' • ⚡ Carregando':'');
-  if(primeiraVez){ primeiraVez=false; if(bounds.length>0) map.fitBounds(bounds,{padding:[60,60],maxZoom:17}); }
-  else if(!explorando && !voando){ if(bounds.length>0) map.fitBounds(bounds,{padding:[60,60],maxZoom:17}); }
-  if(histOn){
-    let histCarro=hist.filter(h=>h.device_id==='MEU-CARRO');
-    let histEsposa=hist.filter(h=>h.device_id==='ESPOSA');
-    if(filtro!=='ESPOSA' && histCarro.length>1){ let pts=histCarro.map(h=>[h.lat,h.lng]); linhas['hCarro']=L.polyline(pts,{color:'#22c55e',weight:4}).addTo(map); }
-    if(filtro!=='MEU-CARRO' && histEsposa.length>1){ let pts=histEsposa.map(h=>[h.lat,h.lng]); linhas['hEsposa']=L.polyline(pts,{color:'#ef4444',weight:4,dashArray:'6 6'}).addTo(map); }
-  }
-}
-async function refresh(){
-  try{
-    let r=await fetch(U+'/rest/v1/rastreador?select=*&order=updated_at.desc&limit=50',{headers:{apikey:K,Authorization:'Bearer '+K},cache:'no-store'});
-    let j=await r.json();
-    let mapa={};
-    j.forEach(c=>{ if(!mapa[c.device_id]) mapa[c.device_id]=c; });
-    dadosTodos=Object.values(mapa).filter(c=>c.device_id==='MEU-CARRO' || c.device_id==='ESPOSA').sort((a,b)=>new Date(b.updated_at)-new Date(a.updated_at));
-    if(filtro==='TODOS') dados=dadosTodos.slice();
-    else dados=dadosTodos.filter(d=>d.device_id===filtro);
-    desenhar();
-  }catch(e){}
-}
+function onFotoChange(e){ let f=e.target.files && e.target.files[0]; if(!f || !fotoAlvo){ e.target.value=''; fotoAlvo=null; return; } let rd=new FileReader(); rd.onload=()=>{ let img=new Image(); img.onload=()=>{ try{ let mx=240, c=document.createElement('canvas'), ctx=c.getContext('2d'); let s=Math.min(mx/img.width||1, mx/img.height||1, 1); c.width=Math.max(1,Math.round(img.width*s)); c.height=Math.max(1,Math.round(img.height*s)); ctx.drawImage(img,0,0,c.width,c.height); let data=c.toDataURL('image/jpeg',0.82); try{ localStorage.setItem('foto_'+fotoAlvo, data); }catch(err){ alert('Não foi possível salvar a foto. Tente uma imagem menor.'); } desenhar(); }catch(err){ alert('Erro ao processar a imagem.'); } fotoAlvo=null; e.target.value=''; }; img.onerror=()=>{ alert('Não foi possível ler esta imagem.'); fotoAlvo=null; e.target.value=''; }; img.src=rd.result; }; rd.onerror=()=>{ alert('Não foi possível ler o arquivo.'); fotoAlvo=null; e.target.value=''; }; rd.readAsDataURL(f); }
+function applyFotoIco(elId, id){ let el=document.getElementById(elId); if(!el) return; let foto=getFoto(id); if(foto){ el.classList.add('com-foto'); el.style.backgroundImage="url('"+foto+"')"; } else { el.classList.remove('com-foto'); el.style.backgroundImage=''; } }
+function desenhar(){ atualizarFotosTopo(); let vistos=new Set(); let lista=dados; if(lista.length===0) return; let bounds=[]; lista.forEach(c=>{ vistos.add(c.device_id); let info=infoCardHTML(c); let fAtual=(getFoto(c.device_id)||'')+'|'+getNome(c.device_id); if(markers[c.device_id]){ markers[c.device_id].setLatLng([c.lat,c.lng]); markers[c.device_id].setTooltipContent(info); if(markers[c.device_id]._fotoAtual !== fAtual){ markers[c.device_id]._fotoAtual=fAtual; markers[c.device_id].setIcon(L.divIcon({html:pinIconHTML(c.device_id),iconSize:[48,48],iconAnchor:[24,24],className:''})); } } else { let icone=L.divIcon({html:pinIconHTML(c.device_id),iconSize:[48,48],iconAnchor:[24,24],className:''}); markers[c.device_id]=L.marker([c.lat,c.lng],{icon:icone}).addTo(map).bindTooltip(info,{permanent:true,direction:'bottom',offset:[0,6],className:'leaflet-tooltip-card'}); markers[c.device_id]._fotoAtual=fAtual; } bounds.push([c.lat,c.lng]); }); for(let k in markers){ if(!vistos.has(k)){ map.removeLayer(markers[k]); delete markers[k]; } } for(let k in linhas){ map.removeLayer(linhas[k]); delete linhas[k]; } let carro=getCarro(), esposa=getEsposa(); document.getElementById('titulo').innerHTML=filtro==='TODOS'?'FAMÍLIA - '+dadosTodos.length+' pessoas <span class="badge-online">● ao vivo</span>':(filtro==='ESPOSA'?getNome('ESPOSA')+' <span class="badge-online" style="color:#b91c1c;background:#fee2e2">● ao vivo</span>':getNome('MEU-CARRO')+' <span class="badge-online">● ao vivo</span>'); document.getElementById('subTitulo').innerText=filtro==='TODOS'?nomeCurto('MEU-CARRO')+' + '+nomeCurto('ESPOSA')+' • ao vivo':(filtro==='ESPOSA'?getNome('ESPOSA')+' • ao vivo':getNome('MEU-CARRO')+' • ao vivo'); if(carro){ document.getElementById('batCarro').innerHTML=bateriaHTML(carro.battery, carro.charging); document.getElementById('atualCarro').innerText=tempoAtras(carro.updated_at)+' • Precisão '+(carro.accuracy?Math.round(carro.accuracy)+'m':'--'); } if(esposa){ document.getElementById('batEsposa').innerHTML=bateriaHTML(esposa.battery, esposa.charging); document.getElementById('atualEsposa').innerText=tempoAtras(esposa.updated_at)+' • Precisão '+(esposa.accuracy?Math.round(esposa.accuracy)+'m':'--'); } applyFotoIco('icoCarro','MEU-CARRO'); applyFotoIco('icoEsposa','ESPOSA'); document.getElementById('atualizado').innerText=tempoAtras(lista[0].updated_at); document.getElementById('qtd').innerText=dadosTodos.length+' online'; let primeiro=lista[0]; let acc=primeiro.accuracy; let txtAcc=acc?Math.round(acc)+'m':'aguardando GPS...'; document.getElementById('precisao').innerText='Precisão: '+txtAcc+' • '+getNome(primeiro.device_id)+(primeiro.charging?' • ⚡ Carregando':''); if(primeiraVez){ primeiraVez=false; if(bounds.length>0) map.fitBounds(bounds,{padding:[60,60],maxZoom:17}); } else if(!explorando && !voando){ if(bounds.length>0) map.fitBounds(bounds,{padding:[60,60],maxZoom:17}); } if(histOn){ let histCarro=hist.filter(h=>h.device_id==='MEU-CARRO'); let histEsposa=hist.filter(h=>h.device_id==='ESPOSA'); if(filtro!=='ESPOSA' && histCarro.length>1){ let pts=histCarro.map(h=>[h.lat,h.lng]); linhas['hCarro']=L.polyline(pts,{color:'#22c55e',weight:4}).addTo(map); } if(filtro!=='MEU-CARRO' && histEsposa.length>1){ let pts=histEsposa.map(h=>[h.lat,h.lng]); linhas['hEsposa']=L.polyline(pts,{color:'#ef4444',weight:4,dashArray:'6 6'}).addTo(map); } } }
+async function refresh(){ try{ let r=await fetch(U+'/rest/v1/rastreador?select=*&order=updated_at.desc&limit=50',{headers:{apikey:K,Authorization:'Bearer '+K},cache:'no-store'}); let j=await r.json(); let mapa={}; j.forEach(c=>{ if(!mapa[c.device_id]) mapa[c.device_id]=c; }); dadosTodos=Object.values(mapa).filter(c=>c.device_id==='MEU-CARRO' || c.device_id==='ESPOSA').sort((a,b)=>new Date(b.updated_at)-new Date(a.updated_at)); if(filtro==='TODOS') dados=dadosTodos.slice(); else dados=dadosTodos.filter(d=>d.device_id===filtro); desenhar(); }catch(e){} }
 setInterval(()=>{ if(dadosTodos.length>0) document.getElementById('atualizado').innerText=tempoAtras(dadosTodos[0].updated_at); },1000);
 function atualizarAgora(){ let b=document.getElementById('btnAtualizar'); b.classList.add('atualizando'); let ico=b.querySelector('.nav-ico'), lbl=b.querySelector('.nav-lbl'); if(ico) ico.classList.add('spin'); if(lbl) lbl.innerText='Atualizando...'; refresh().then(()=>{ if(lbl) lbl.innerText='Atualizado!'; setTimeout(()=>{ b.classList.remove('atualizando'); if(ico) ico.classList.remove('spin'); if(lbl) lbl.innerText='Atualizar'; },1500); }); if(!explorando) voltarProCarro(); }
 function voltarProCarro(){ let lista=dados; if(lista.length===0) return; explorando=false; primeiraVez=false; voando=true; if(lista.length===1){ map.flyTo([lista[0].lat,lista[0].lng],17,{duration:1.2}); } else { map.flyToBounds(lista.map(c=>[c.lat,c.lng]),{padding:[60,60],maxZoom:16,duration:1.2}); } setTimeout(()=>{ voando=false; },2000); }
@@ -446,7 +207,6 @@ refresh();
 setInterval(refresh,7000);
 document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible') refresh(); });
 document.addEventListener('contextmenu',e=>e.preventDefault());
-console.log('%c🔒 PAINEL FAMÍLIA GEOZILLA v4.2 - AUTO 7s - SÓ 2','color:#00C48C;font-weight:bold;font-size:16px');
 </script>
 </body>
 </html>
