@@ -174,6 +174,18 @@ html,body{margin:0;height:100%;font-family:'Inter',system-ui,-apple-system,'Sego
 .item-ico.com-foto .item-emoji{display:none}
 .item-ico.com-foto .item-x{display:flex}
 .lock{position:fixed;bottom:4px;right:6px;z-index:1002;font-size:9px;opacity:.3;color:#000;pointer-events:none;font-weight:600}
+/* MODAL CLARO - sem tela escura */
+.modal-nome{position:fixed;inset:0;z-index:2000;display:none;align-items:center;justify-content:center;padding:20px;background:rgba(255,255,255,.55);backdrop-filter:blur(2px)}
+.modal-nome.aberto{display:flex}
+.modal-card{background:#fff;border-radius:20px;padding:20px;width:100%;max-width:320px;box-shadow:0 10px 30px rgba(0,0,0,.15);border:1px solid #eef0f2}
+.modal-card h3{margin:0;font-size:16px;font-weight:800}
+.modal-card p{margin:6px 0 14px;color:var(--muted);font-size:13px}
+.modal-card input{width:100%;padding:13px 14px;border:2px solid #eef0f2;border-radius:12px;font-size:16px;font-weight:800;text-transform:uppercase;outline:none}
+.modal-card input:focus{border-color:var(--green)}
+.modal-botoes{display:flex;gap:10px;margin-top:16px}
+.modal-botoes button{flex:1;padding:12px;border:0;border-radius:12px;font-size:14px;font-weight:800;cursor:pointer;font-family:inherit}
+.btn-cancelar{background:#f1f5f9;color:var(--muted)}
+.btn-salvar{background:var(--green);color:#fff}
 @media (max-width:380px){
   .seg2 button{padding:6px 9px;font-size:10px}
   .chip-brand{padding:7px 11px;font-size:12px}
@@ -243,7 +255,18 @@ html,body{margin:0;height:100%;font-family:'Inter',system-ui,-apple-system,'Sego
     <button class="nav-cell" onclick="voltarProCarro()"><span class="nav-ico">🎯</span><span class="nav-lbl">Centralizar</span></button>
   </div>
 </div>
-<div class="lock">🔒 PAINEL FAMÍLIA v4.1 GEOZILLA • AUTO 7s • SÓ 2</div>
+<div class="modal-nome" id="modalNome" onclick="if(event.target===this) fecharModalNome()">
+  <div class="modal-card">
+    <h3 id="modalTitulo">Editar nome</h3>
+    <p id="modalSub">Digite o novo nome</p>
+    <input id="inputNome" maxlength="20" autocomplete="off">
+    <div class="modal-botoes">
+      <button class="btn-cancelar" onclick="fecharModalNome()">Cancelar</button>
+      <button class="btn-salvar" onclick="salvarNome()">Salvar</button>
+    </div>
+  </div>
+</div>
+<div class="lock">🔒 PAINEL FAMÍLIA v4.2 GEOZILLA • AUTO 7s • SÓ 2</div>
 <script>
 if('serviceWorker' in navigator){ navigator.serviceWorker.register('./sw.js').catch(()=>{}); }
 const U="https://jpaflbkafupwqfqfcjrv.supabase.co", K="sb_publishable_qek2mggF5M47pKggbM42tQ_WTFnOOxf";
@@ -268,15 +291,27 @@ function getCarro(){ return dadosTodos.find(d=>d.device_id==='MEU-CARRO'); }
 function getEsposa(){ return dadosTodos.find(d=>d.device_id==='ESPOSA'); }
 function getNome(id){ try{ return localStorage.getItem('nome_'+id) || (id==='ESPOSA'?'ESPOSA':'MEU-CARRO'); }catch(e){ return id==='ESPOSA'?'ESPOSA':'MEU-CARRO'; } }
 function nomeCurto(id){ let n=getNome(id); if(id==='MEU-CARRO' && n==='MEU-CARRO') return 'CARRO'; return n; }
+let editandoId=null;
 function editarNome(id){
+  editandoId=id;
   let atual=getNome(id);
-  let novo=prompt('Novo nome para '+atual+':', atual);
-  if(novo===null) return;
-  novo=novo.trim().toUpperCase().slice(0,20);
-  if(!novo){ alert('Nome vazio, mantido '+atual); return; }
-  try{ localStorage.setItem('nome_'+id, novo); }catch(e){}
+  document.getElementById('modalTitulo').innerText='Editar '+atual;
+  document.getElementById('modalSub').innerText='Novo nome para '+(id==='ESPOSA'?'sua esposa':'seu carro')+':';
+  let inp=document.getElementById('inputNome');
+  inp.value=atual;
+  document.getElementById('modalNome').classList.add('aberto');
+  setTimeout(()=>{ inp.focus(); inp.select(); },100);
+}
+function fecharModalNome(){ document.getElementById('modalNome').classList.remove('aberto'); editandoId=null; }
+function salvarNome(){
+  if(!editandoId) return;
+  let novo=document.getElementById('inputNome').value.trim().toUpperCase().slice(0,20);
+  if(!novo){ fecharModalNome(); return; }
+  try{ localStorage.setItem('nome_'+editandoId, novo); }catch(e){}
+  fecharModalNome();
   desenhar();
 }
+document.getElementById('inputNome').addEventListener('keydown',function(e){ if(e.key==='Enter') salvarNome(); if(e.key==='Escape') fecharModalNome(); });
 function infoCardHTML(c){
   let isEsposa=c.device_id==='ESPOSA';
   let nome=getNome(c.device_id);
@@ -411,7 +446,7 @@ refresh();
 setInterval(refresh,7000);
 document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible') refresh(); });
 document.addEventListener('contextmenu',e=>e.preventDefault());
-console.log('%c🔒 PAINEL FAMÍLIA GEOZILLA v4.1 - AUTO 7s - SÓ 2','color:#00C48C;font-weight:bold;font-size:16px');
+console.log('%c🔒 PAINEL FAMÍLIA GEOZILLA v4.2 - AUTO 7s - SÓ 2','color:#00C48C;font-weight:bold;font-size:16px');
 </script>
 </body>
 </html>
