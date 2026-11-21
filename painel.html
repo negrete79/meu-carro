@@ -5,7 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Painel Família V10</title>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-<meta name="theme-color" content="#ffffff">
+<meta name="theme-color" content="#000000">
+<link rel="manifest" href="manifest-painel.json">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="PAINEL">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css?v=10">
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js?v=10"></script>
 <style>
@@ -172,7 +177,6 @@ fotoInput.addEventListener('change', function(e){
 });
 function trocarFoto(id){ fotoAlvo=id; fotoInput.value=''; fotoInput.click(); }
 function getFoto(id){ try{ return localStorage.getItem('foto_'+id); }catch(e){ return null; } }
-// *** CORREÇÃO: ATUALIZA A FOTO LÁ EM CIMA TAMBÉM ***
 function atualizarFotosTopo(){
   let fc=getFoto('MEU-CARRO'), fe=getFoto('ESPOSA');
   let elC=document.getElementById('fotoTopoCarro');
