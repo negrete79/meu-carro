@@ -1,37 +1,19 @@
 {
-  "name": "PAINEL CARRO",
-  "short_name": "PAINEL",
+  "name": "Painel Família",
+  "short_name": "Painel",
+  "description": "Painel de localização da família ao vivo — carro + esposa",
   "lang": "pt-BR",
-  "start_url": "./painel.html",
+  "dir": "ltr",
+  "start_url": "./painel-familia.html",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#000000",
-  "theme_color": "#000000",
+  "background_color": "#ffffff",
+  "theme_color": "#ffffff",
+  "categories": ["navigation", "lifestyle"],
   "icons": [
-    {
-      "src": "icon-192.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "icon-512.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "icon-192.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "maskable"
-    },
-    {
-      "src": "icon-512.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "maskable"
-    }
+    { "src": "./icon-painel-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "./icon-painel-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "./icon-painel-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
   ]
 }
